@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useLoan } from '../contexts/LoanContext'
 
-const INTEREST_TYPES = ['daily', 'weekly', 'monthly']
-
 export default function AdminLoanProducts() {
   const { getLoanProducts, createProduct, updateProduct, deleteProduct } = useLoan()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState(null)
-  const [form, setForm] = useState({ name: '', description: '', interest_type: 'daily', interest_rate: '', days: '', min_amount: '', max_amount: '' })
+  const [form, setForm] = useState({ name: '', description: '', daily_rate: '', weekly_rate: '', monthly_rate: '', days: '', min_amount: '', max_amount: '' })
 
   useEffect(() => {
     loadProducts()
@@ -24,13 +22,22 @@ export default function AdminLoanProducts() {
   }
 
   function resetForm() {
-    setForm({ name: '', description: '', interest_type: 'daily', interest_rate: '', days: '', min_amount: '', max_amount: '' })
+    setForm({ name: '', description: '', daily_rate: '', weekly_rate: '', monthly_rate: '', days: '', min_amount: '', max_amount: '' })
     setEditing(null)
     setShowForm(false)
   }
 
   function editProduct(p) {
-    setForm({ name: p.name, description: p.description || '', interest_type: p.interest_type, interest_rate: String(p.interest_rate), days: String(p.days), min_amount: String(p.min_amount || ''), max_amount: String(p.max_amount || '') })
+    setForm({
+      name: p.name,
+      description: p.description || '',
+      daily_rate: String(p.daily_rate || ''),
+      weekly_rate: String(p.weekly_rate || ''),
+      monthly_rate: String(p.monthly_rate || ''),
+      days: String(p.days),
+      min_amount: String(p.min_amount || ''),
+      max_amount: String(p.max_amount || ''),
+    })
     setEditing(p)
     setShowForm(true)
   }
@@ -40,8 +47,9 @@ export default function AdminLoanProducts() {
     const data = {
       name: form.name,
       description: form.description,
-      interest_type: form.interest_type,
-      interest_rate: parseFloat(form.interest_rate),
+      daily_rate: parseFloat(form.daily_rate || 0),
+      weekly_rate: parseFloat(form.weekly_rate || 0),
+      monthly_rate: parseFloat(form.monthly_rate || 0),
       days: parseInt(form.days),
       min_amount: parseFloat(form.min_amount || 0),
       max_amount: parseFloat(form.max_amount || 999999.99),
@@ -94,16 +102,22 @@ export default function AdminLoanProducts() {
                 <label>Description</label>
                 <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Product description" />
               </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Interest Type</label>
-                  <select value={form.interest_type} onChange={e => setForm({ ...form, interest_type: e.target.value })}>
-                    {INTEREST_TYPES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Interest Rate (%)</label>
-                  <input type="number" step="0.01" value={form.interest_rate} onChange={e => setForm({ ...form, interest_rate: e.target.value })} placeholder="5" required />
+              <div className="checkout-section" style={{ padding: 12, marginBottom: 12 }}>
+                <h2>Interest Rates</h2>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: 10 }}>Set rates for each repayment frequency</p>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Daily Rate (%)</label>
+                    <input type="number" step="0.01" value={form.daily_rate} onChange={e => setForm({ ...form, daily_rate: e.target.value })} placeholder="1.5" required />
+                  </div>
+                  <div className="form-group">
+                    <label>Weekly Rate (%)</label>
+                    <input type="number" step="0.01" value={form.weekly_rate} onChange={e => setForm({ ...form, weekly_rate: e.target.value })} placeholder="5" required />
+                  </div>
+                  <div className="form-group">
+                    <label>Monthly Rate (%)</label>
+                    <input type="number" step="0.01" value={form.monthly_rate} onChange={e => setForm({ ...form, monthly_rate: e.target.value })} placeholder="10" required />
+                  </div>
                 </div>
               </div>
               <div className="form-group">
@@ -142,9 +156,12 @@ export default function AdminLoanProducts() {
               <div className="admin-menu-info">
                 <div>
                   <strong>{p.name}</strong>
-                  <div className="menu-item-desc">{p.description || `${p.interest_type} @ ${p.interest_rate}% | ${p.days} days`}</div>
+                  <div className="menu-item-desc">{p.description || `${p.days} days`}</div>
                   <div className="menu-item-desc">
-                    ₱{p.min_amount?.toLocaleString()} - ₱{p.max_amount?.toLocaleString()} | <span className="menu-item-price">{p.interest_type} @ {p.interest_rate}%</span>
+                    ₱{p.min_amount?.toLocaleString()} - ₱{p.max_amount?.toLocaleString()}
+                  </div>
+                  <div className="menu-item-desc" style={{ marginTop: 4 }}>
+                    <span style={{ fontSize: '0.8rem' }}>Daily: {p.daily_rate || 0}% | Weekly: {p.weekly_rate || 0}% | Monthly: {p.monthly_rate || 0}%</span>
                   </div>
                 </div>
               </div>

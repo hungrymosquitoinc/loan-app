@@ -9,6 +9,7 @@ export default function ApplyLoan() {
   const navigate = useNavigate()
   const [products, setProducts] = useState([])
   const [selectedProduct, setSelectedProduct] = useState(null)
+  const [frequency, setFrequency] = useState('daily')
   const [amount, setAmount] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
@@ -27,16 +28,24 @@ export default function ApplyLoan() {
     setLoading(false)
   }
 
+  function getSelectedRate() {
+    if (!selectedProduct) return 0
+    if (frequency === 'daily') return selectedProduct.daily_rate || 0
+    if (frequency === 'weekly') return selectedProduct.weekly_rate || 0
+    return selectedProduct.monthly_rate || 0
+  }
+
   function getCalculatedInterest() {
     if (!selectedProduct || !amount) return null
     const principal = parseFloat(amount)
     if (isNaN(principal)) return null
-    const p = selectedProduct
+    const rate = getSelectedRate()
+    const days = selectedProduct.days
     let interest
-    if (p.interest_type === 'daily') interest = principal * (p.interest_rate / 100) * p.days
-    else if (p.interest_type === 'weekly') interest = principal * (p.interest_rate / 100) * Math.ceil(p.days / 7)
-    else interest = principal * (p.interest_rate / 100) * Math.ceil(p.days / 30)
-    return { interest: parseFloat(interest.toFixed(2)), total: principal + parseFloat(interest.toFixed(2)) }
+    if (frequency === 'daily') interest = principal * (rate / 100) * days
+    else if (frequency === 'weekly') interest = principal * (rate / 100) * Math.ceil(days / 7)
+    else interest = principal * (rate / 100) * Math.ceil(days / 30)
+    return { interest: parseFloat(interest.toFixed(2)), total: principal + parseFloat(interest.toFixed(2)), rate }
   }
 
   async function handleSubmit(e) {
@@ -54,8 +63,9 @@ export default function ApplyLoan() {
         product_id: selectedProduct.id,
         amount: parseFloat(amount),
         days: selectedProduct.days,
-        interest_rate: selectedProduct.interest_rate,
-        interest_type: selectedProduct.interest_type,
+        interest_rate: getSelectedRate(),
+        interest_type: frequency,
+        frequency,
       })
       navigate('/my-loans')
     } catch (e) {
@@ -85,7 +95,7 @@ export default function ApplyLoan() {
             <label>Select Loan Product</label>
             <select value={selectedProduct?.id || ''} onChange={e => setSelectedProduct(products.find(p => p.id === parseInt(e.target.value)))}>
               {products.map(p => (
-                <option key={p.id} value={p.id}>{p.name} - {p.interest_type} @ {p.interest_rate}%</option>
+                <option key={p.id} value={p.id}>{p.name}</option>
               ))}
             </select>
           </div>
@@ -94,9 +104,13 @@ export default function ApplyLoan() {
             <div className="checkout-section">
               <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                 {selectedProduct.description}<br />
-                <strong>Interest:</strong> {selectedProduct.interest_type} @ {selectedProduct.interest_rate}% | <strong>Term:</strong> {selectedProduct.days} days<br />
-                <strong>Range:</strong> ₱{selectedProduct.min_amount?.toLocaleString()} - ₱{selectedProduct.max_amount?.toLocaleString()}
+                <strong>Term:</strong> {selectedProduct.days} days | <strong>Range:</strong> ₱{selectedProduct.min_amount?.toLocaleString()} - ₱{selectedProduct.max_amount?.toLocaleString()}
               </p>
+              <div style={{ marginTop: 8, fontSize: '0.85rem', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ background: '#e3f2fd', padding: '2px 8px', borderRadius: 4 }}>Daily: {selectedProduct.daily_rate || 0}%</span>
+                <span style={{ background: '#e3f2fd', padding: '2px 8px', borderRadius: 4 }}>Weekly: {selectedProduct.weekly_rate || 0}%</span>
+                <span style={{ background: '#e3f2fd', padding: '2px 8px', borderRadius: 4 }}>Monthly: {selectedProduct.monthly_rate || 0}%</span>
+              </div>
             </div>
           )}
 
@@ -109,6 +123,28 @@ export default function ApplyLoan() {
           )}
 
           <div className="form-group">
+            <label>Repayment Frequency</label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {['daily', 'weekly', 'monthly'].map(f => {
+                const rate = selectedProduct ? (f === 'daily' ? selectedProduct.daily_rate : f === 'weekly' ? selectedProduct.weekly_rate : selectedProduct.monthly_rate) : 0
+                return (
+                  <button key={f} type="button"
+                    style={{
+                      flex: 1, padding: '10px 8px', borderRadius: 8, border: `2px solid ${frequency === f ? 'var(--primary)' : 'var(--border)'}`,
+                      background: frequency === f ? 'var(--primary)' : 'transparent',
+                      color: frequency === f ? '#fff' : 'inherit',
+                      cursor: 'pointer', fontSize: '0.8rem', textAlign: 'center',
+                    }}
+                    onClick={() => setFrequency(f)}>
+                    <div style={{ fontWeight: 700 }}>{f.charAt(0).toUpperCase() + f.slice(1)}</div>
+                    <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>{rate || 0}%</div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="form-group">
             <label>Loan Amount (₱)</label>
             <input type="number" value={amount} onChange={e => setAmount(e.target.value)} min={selectedProduct?.min_amount || 0} max={selectedProduct?.max_amount || 999999} placeholder="Enter amount" required />
           </div>
@@ -118,7 +154,7 @@ export default function ApplyLoan() {
               <h2>Loan Summary</h2>
               <div className="checkout-items">
                 <div className="checkout-item"><span>Principal</span><span>₱{parseFloat(amount).toLocaleString()}</span></div>
-                <div className="checkout-item"><span>Interest ({selectedProduct.interest_type}, {selectedProduct.days} days @ {selectedProduct.interest_rate}%)</span><span>₱{calc.interest.toLocaleString()}</span></div>
+                <div className="checkout-item"><span>Interest ({frequency}, {selectedProduct.days} days @ {calc.rate}%)</span><span>₱{calc.interest.toLocaleString()}</span></div>
               </div>
               <div className="checkout-total" style={{ marginTop: 10, paddingTop: 10, borderTop: '2px solid var(--primary)' }}>
                 <strong>Total Payable</strong>

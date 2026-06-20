@@ -111,12 +111,14 @@ app.get('/api/loans/borrower-stats/:borrowerId', (req, res) => {
 
 app.post('/api/loans', (req, res) => {
   const db = readLoanDB();
-  const { borrower_id, borrower_name, product_id, amount, days, interest_rate, interest_type } = req.body;
+  const { borrower_id, borrower_name, product_id, amount, days, interest_rate, interest_type, frequency } = req.body;
 
+  const rate = parseFloat(interest_rate) || 0;
   let total_interest;
-  if (interest_type === 'daily') total_interest = amount * (interest_rate / 100) * days;
-  else if (interest_type === 'weekly') total_interest = amount * (interest_rate / 100) * Math.ceil(days / 7);
-  else if (interest_type === 'monthly') total_interest = amount * (interest_rate / 100) * Math.ceil(days / 30);
+  const freq = frequency || interest_type || 'daily';
+  if (freq === 'daily') total_interest = amount * (rate / 100) * days;
+  else if (freq === 'weekly') total_interest = amount * (rate / 100) * Math.ceil(days / 7);
+  else if (freq === 'monthly') total_interest = amount * (rate / 100) * Math.ceil(days / 30);
   else total_interest = 0;
 
   const total_payable = amount + total_interest;
@@ -128,8 +130,9 @@ app.post('/api/loans', (req, res) => {
     product_id,
     amount: parseFloat(amount),
     days: parseInt(days),
-    interest_rate: parseFloat(interest_rate),
-    interest_type,
+    interest_rate: rate,
+    interest_type: freq,
+    frequency: freq,
     total_interest: parseFloat(total_interest.toFixed(2)),
     total_payable: parseFloat(total_payable.toFixed(2)),
     paid_amount: 0,
