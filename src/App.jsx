@@ -14,6 +14,7 @@ import AdminLoanDashboard from './pages/AdminLoanDashboard'
 import AdminLoanProducts from './pages/AdminLoanProducts'
 import AdminLoanApplications from './pages/AdminLoanApplications'
 import AdminBorrowers from './pages/AdminBorrowers'
+import AdminProfile from './pages/AdminProfile'
 import NotFound from './pages/NotFound'
 
 export default function App() {
@@ -36,6 +37,7 @@ export default function App() {
                 <Route path="/admin/loan-products" element={<ProtectedRoute adminOnly><AdminLoanProducts /></ProtectedRoute>} />
                 <Route path="/admin/loan-applications" element={<ProtectedRoute adminOnly><AdminLoanApplications /></ProtectedRoute>} />
                 <Route path="/admin/borrowers" element={<ProtectedRoute adminOnly><AdminBorrowers /></ProtectedRoute>} />
+                <Route path="/admin/profile" element={<ProtectedRoute adminOnly><AdminProfile /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>

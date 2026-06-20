@@ -1,17 +1,21 @@
 -- Loan Management App Schema
 -- Run this in Supabase SQL Editor after creating a project
 
--- Add KYC and bank fields to profiles
-alter table profiles add column if not exists address text default '';
-alter table profiles add column if not exists id_type text default '';
-alter table profiles add column if not exists id_number text default '';
-alter table profiles add column if not exists bank_name text default '';
-alter table profiles add column if not exists bank_account text default '';
-alter table profiles add column if not exists qr_data text default '';
-
--- Update role check constraint to include 'borrower'
-alter table profiles drop constraint if exists profiles_role_check;
-alter table profiles add constraint profiles_role_check check (role in ('admin', 'cook', 'user', 'borrower'));
+-- Create profiles table
+create table if not exists profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  name text not null default '',
+  role text not null default 'borrower' check (role in ('admin', 'borrower')),
+  phone text default '',
+  is_active boolean default true,
+  address text default '',
+  id_type text default '',
+  id_number text default '',
+  bank_name text default '',
+  bank_account text default '',
+  qr_data text default '',
+  created_at timestamptz default now()
+);
 
 -- Loan products table
 create table if not exists loan_products (
@@ -60,25 +64,53 @@ create table if not exists loan_payments (
   created_at timestamptz default now()
 );
 
+-- RLS for profiles
+alter table profiles enable row level security;
+
+drop policy if exists "Users can view own profile" on profiles;
+create policy "Users can view own profile"
+  on profiles for select
+  using (id = auth.uid());
+
+drop policy if exists "Admins can view all profiles" on profiles;
+create policy "Admins can view all profiles"
+  on profiles for select
+  using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+
+drop policy if exists "Users can update own profile" on profiles;
+create policy "Users can update own profile"
+  on profiles for update
+  using (id = auth.uid());
+
+drop policy if exists "Users can insert own profile" on profiles;
+create policy "Users can insert own profile"
+  on profiles for insert
+  with check (id = auth.uid());
+
 -- RLS for loan_products
 alter table loan_products enable row level security;
 
+drop policy if exists "Anyone can view active loan products" on loan_products;
 create policy "Anyone can view active loan products"
   on loan_products for select
   using (is_active = true);
 
+drop policy if exists "Admins can view all loan products" on loan_products;
 create policy "Admins can view all loan products"
   on loan_products for select
   using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
 
+drop policy if exists "Admins can insert loan products" on loan_products;
 create policy "Admins can insert loan products"
   on loan_products for insert
   with check (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
 
+drop policy if exists "Admins can update loan products" on loan_products;
 create policy "Admins can update loan products"
   on loan_products for update
   using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
 
+drop policy if exists "Admins can delete loan products" on loan_products;
 create policy "Admins can delete loan products"
   on loan_products for delete
   using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
@@ -86,18 +118,22 @@ create policy "Admins can delete loan products"
 -- RLS for loans
 alter table loans enable row level security;
 
+drop policy if exists "Borrowers can view own loans" on loans;
 create policy "Borrowers can view own loans"
   on loans for select
   using (borrower_id = auth.uid());
 
+drop policy if exists "Admins can view all loans" on loans;
 create policy "Admins can view all loans"
   on loans for select
   using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
 
+drop policy if exists "Borrowers can insert own loans" on loans;
 create policy "Borrowers can insert own loans"
   on loans for insert
   with check (borrower_id = auth.uid());
 
+drop policy if exists "Admins can update loans" on loans;
 create policy "Admins can update loans"
   on loans for update
   using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
@@ -105,18 +141,22 @@ create policy "Admins can update loans"
 -- RLS for loan_payments
 alter table loan_payments enable row level security;
 
+drop policy if exists "Borrowers can view own loan payments" on loan_payments;
 create policy "Borrowers can view own loan payments"
   on loan_payments for select
   using (exists (select 1 from loans where id = loan_id and borrower_id = auth.uid()));
 
+drop policy if exists "Admins can view all loan payments" on loan_payments;
 create policy "Admins can view all loan payments"
   on loan_payments for select
   using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
 
+drop policy if exists "Admins can insert loan payments" on loan_payments;
 create policy "Admins can insert loan payments"
   on loan_payments for insert
   with check (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
 
+drop policy if exists "Admins can update loan payments" on loan_payments;
 create policy "Admins can update loan payments"
   on loan_payments for update
   using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));

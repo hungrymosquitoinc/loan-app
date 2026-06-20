@@ -55,6 +55,7 @@ export default function Navbar() {
             <Link to="/admin/loan-products" className={`nav-link ${location.pathname === '/admin/loan-products' ? 'active' : ''}`}>Products</Link>
             <Link to="/admin/loan-applications" className={`nav-link ${location.pathname === '/admin/loan-applications' ? 'active' : ''}`}>Applications</Link>
             <Link to="/admin/borrowers" className={`nav-link ${location.pathname === '/admin/borrowers' ? 'active' : ''}`}>Borrowers</Link>
+            <Link to="/admin/profile" className={`nav-link ${location.pathname === '/admin/profile' ? 'active' : ''}`}>Profile</Link>
           </>
         ) : (
           <>

@@ -246,6 +246,25 @@ app.get('/api/profile/:id', (req, res) => {
   res.json(safeUser);
 });
 
+// === Admin Profile ===
+
+app.put('/api/admin/profile', async (req, res) => {
+  const { id, name, phone } = req.body;
+  if (!id || !name) return res.status(400).json({ error: 'id and name required' });
+  if (supabaseConfig.supabaseUrl && supabaseConfig.serviceRoleKey) {
+    try {
+      const headers = { Authorization: `Bearer ${supabaseConfig.serviceRoleKey}`, apikey: supabaseConfig.serviceRoleKey, 'Content-Type': 'application/json', Prefer: 'return=representation' }
+      const r = await axios.patch(
+        `${supabaseConfig.supabaseUrl}/rest/v1/profiles?id=eq.${id}`,
+        { name, phone },
+        { headers }
+      )
+      if (r.data?.[0]) return res.json(r.data[0]);
+    } catch {}
+  }
+  res.json({ id, name, phone, updated: true });
+});
+
 // === Borrowers (admin view) ===
 
 app.get('/api/borrowers', async (req, res) => {

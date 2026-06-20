@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useLoan } from '../contexts/LoanContext'
 
+function maskName(name) {
+  if (!name || name.length <= 2) return name || '—'
+  return name.substring(0, 2) + '...'
+}
+
 export default function AdminBorrowers() {
   const { getBorrowers } = useLoan()
   const [borrowers, setBorrowers] = useState([])
@@ -43,7 +48,7 @@ export default function AdminBorrowers() {
               <div className="checkout-section" style={{ padding: 16, marginBottom: 12 }}>
                 <h2>Personal Info</h2>
                 <div className="checkout-items">
-                  <div className="checkout-item"><span>Name</span><span>{selected.name}</span></div>
+                  <div className="checkout-item"><span>Name</span><span>{maskName(selected.name)}</span></div>
                   <div className="checkout-item"><span>Phone</span><span>{selected.phone || '—'}</span></div>
                   <div className="checkout-item"><span>Address</span><span>{selected.address || '—'}</span></div>
                 </div>
