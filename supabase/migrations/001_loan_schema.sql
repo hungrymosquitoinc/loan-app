@@ -66,6 +66,15 @@ create table if not exists loan_payments (
   created_at timestamptz default now()
 );
 
+-- Helper function to check if user is admin (avoids RLS recursion)
+create or replace function public.is_admin()
+returns boolean as $$
+  select exists (
+    select 1 from profiles
+    where id = auth.uid() and role = 'admin'
+  );
+$$ language sql security definer stable;
+
 -- RLS for profiles
 alter table profiles enable row level security;
 
@@ -77,7 +86,7 @@ create policy "Users can view own profile"
 drop policy if exists "Admins can view all profiles" on profiles;
 create policy "Admins can view all profiles"
   on profiles for select
-  using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+  using (public.is_admin());
 
 drop policy if exists "Users can update own profile" on profiles;
 create policy "Users can update own profile"
@@ -100,22 +109,22 @@ create policy "Anyone can view active loan products"
 drop policy if exists "Admins can view all loan products" on loan_products;
 create policy "Admins can view all loan products"
   on loan_products for select
-  using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+  using (public.is_admin());
 
 drop policy if exists "Admins can insert loan products" on loan_products;
 create policy "Admins can insert loan products"
   on loan_products for insert
-  with check (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+  with check (public.is_admin());
 
 drop policy if exists "Admins can update loan products" on loan_products;
 create policy "Admins can update loan products"
   on loan_products for update
-  using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+  using (public.is_admin());
 
 drop policy if exists "Admins can delete loan products" on loan_products;
 create policy "Admins can delete loan products"
   on loan_products for delete
-  using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+  using (public.is_admin());
 
 -- RLS for loans
 alter table loans enable row level security;
@@ -128,7 +137,7 @@ create policy "Borrowers can view own loans"
 drop policy if exists "Admins can view all loans" on loans;
 create policy "Admins can view all loans"
   on loans for select
-  using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+  using (public.is_admin());
 
 drop policy if exists "Borrowers can insert own loans" on loans;
 create policy "Borrowers can insert own loans"
@@ -138,7 +147,7 @@ create policy "Borrowers can insert own loans"
 drop policy if exists "Admins can update loans" on loans;
 create policy "Admins can update loans"
   on loans for update
-  using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+  using (public.is_admin());
 
 -- RLS for loan_payments
 alter table loan_payments enable row level security;
@@ -151,17 +160,17 @@ create policy "Borrowers can view own loan payments"
 drop policy if exists "Admins can view all loan payments" on loan_payments;
 create policy "Admins can view all loan payments"
   on loan_payments for select
-  using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+  using (public.is_admin());
 
 drop policy if exists "Admins can insert loan payments" on loan_payments;
 create policy "Admins can insert loan payments"
   on loan_payments for insert
-  with check (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+  with check (public.is_admin());
 
 drop policy if exists "Admins can update loan payments" on loan_payments;
 create policy "Admins can update loan payments"
   on loan_payments for update
-  using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'));
+  using (public.is_admin());
 
 -- Seed initial admin user (run AFTER creating user in Auth UI)
 -- insert into profiles (id, name, role, is_active)
