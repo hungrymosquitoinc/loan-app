@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: loan-api
+    runtime: node
+    repo: https://github.com/your-username/loan-app
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: SUPABASE_URL
+        value: https://pusdssjwtjdkcdgslopc.supabase.co
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false

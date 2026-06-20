@@ -1,0 +1,9 @@
+{
+  "appId": "com.loanapp.app",
+  "appName": "LoanApp",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}

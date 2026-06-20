@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">LoanApp</string>
+    <string name="title_activity_main">LoanApp</string>
+    <string name="package_name">com.loanapp.app</string>
+    <string name="custom_url_scheme">com.loanapp.app</string>
+</resources>
