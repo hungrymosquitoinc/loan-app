@@ -2,6 +2,7 @@ import { HashRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { LoanProvider } from './contexts/LoanContext'
 import Navbar from './components/Navbar'
+import BottomNav from './components/BottomNav'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -10,10 +11,12 @@ import ApplyLoan from './pages/ApplyLoan'
 import MyLoans from './pages/MyLoans'
 import LoanDetail from './pages/LoanDetail'
 import BorrowerKYC from './pages/BorrowerKYC'
+import BorrowerProfile from './pages/BorrowerProfile'
 import AdminLoanDashboard from './pages/AdminLoanDashboard'
 import AdminLoanProducts from './pages/AdminLoanProducts'
-import AdminLoanApplications from './pages/AdminLoanApplications'
+import AdminLoans from './pages/AdminLoans'
 import AdminBorrowers from './pages/AdminBorrowers'
+import AdminKYC from './pages/AdminKYC'
 import AdminProfile from './pages/AdminProfile'
 import NotFound from './pages/NotFound'
 
@@ -33,14 +36,17 @@ export default function App() {
                 <Route path="/my-loans" element={<ProtectedRoute><MyLoans /></ProtectedRoute>} />
                 <Route path="/my-loans/:id" element={<ProtectedRoute><LoanDetail /></ProtectedRoute>} />
                 <Route path="/kyc" element={<ProtectedRoute allowedRoles={['borrower']}><BorrowerKYC /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute allowedRoles={['borrower']}><BorrowerProfile /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute adminOnly><AdminLoanDashboard /></ProtectedRoute>} />
                 <Route path="/admin/loan-products" element={<ProtectedRoute adminOnly><AdminLoanProducts /></ProtectedRoute>} />
-                <Route path="/admin/loan-applications" element={<ProtectedRoute adminOnly><AdminLoanApplications /></ProtectedRoute>} />
+                <Route path="/admin/loans" element={<ProtectedRoute adminOnly><AdminLoans /></ProtectedRoute>} />
+                <Route path="/admin/kyc" element={<ProtectedRoute adminOnly><AdminKYC /></ProtectedRoute>} />
                 <Route path="/admin/borrowers" element={<ProtectedRoute adminOnly><AdminBorrowers /></ProtectedRoute>} />
                 <Route path="/admin/profile" element={<ProtectedRoute adminOnly><AdminProfile /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
+            <BottomNav />
           </div>
         </LoanProvider>
       </AuthProvider>

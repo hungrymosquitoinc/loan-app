@@ -111,7 +111,7 @@ app.get('/api/loans/borrower-stats/:borrowerId', (req, res) => {
 
 app.post('/api/loans', (req, res) => {
   const db = readLoanDB();
-  const { borrower_id, borrower_name, product_id, amount, days, interest_rate, interest_type, frequency } = req.body;
+  const { borrower_id, borrower_name, product_id, amount, days, interest_rate, interest_type, frequency, num_payments, purpose, emi } = req.body;
 
   const rate = parseFloat(interest_rate) || 0;
   let total_interest;
@@ -135,6 +135,9 @@ app.post('/api/loans', (req, res) => {
     frequency: freq,
     total_interest: parseFloat(total_interest.toFixed(2)),
     total_payable: parseFloat(total_payable.toFixed(2)),
+    num_payments: num_payments ? parseInt(num_payments) : 0,
+    purpose: purpose || '',
+    emi: emi ? parseFloat(emi) : 0,
     paid_amount: 0,
     status: 'pending',
     applied_at: new Date().toISOString(),
@@ -294,6 +297,30 @@ app.get('/api/borrowers', async (req, res) => {
     total_borrowed: db.loans.filter(l => l.borrower_id === p.id).reduce((s, l) => s + l.amount, 0),
   }))
   res.json(borrowers)
+});
+
+// === Payment Methods ===
+
+app.get('/api/admin/payment-methods', (req, res) => {
+  const db = readLoanDB();
+  res.json(db._payment_methods || []);
+});
+
+app.put('/api/admin/payment-methods', (req, res) => {
+  const db = readLoanDB();
+  if (!db._payment_methods) db._payment_methods = [];
+  const pm = { id: Date.now(), ...req.body };
+  db._payment_methods.push(pm);
+  writeLoanDB(db);
+  res.status(201).json(pm);
+});
+
+app.delete('/api/admin/payment-methods/:id', (req, res) => {
+  const db = readLoanDB();
+  if (!db._payment_methods) db._payment_methods = [];
+  db._payment_methods = db._payment_methods.filter(p => p.id !== parseInt(req.params.id) && p.id !== req.params.id);
+  writeLoanDB(db);
+  res.json({ success: true });
 });
 
 app.put('/api/borrowers/:id/kyc', async (req, res) => {
