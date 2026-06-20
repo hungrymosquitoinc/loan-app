@@ -32,7 +32,7 @@ export default function App() {
                 <Route path="/apply-loan" element={<ProtectedRoute><ApplyLoan /></ProtectedRoute>} />
                 <Route path="/my-loans" element={<ProtectedRoute><MyLoans /></ProtectedRoute>} />
                 <Route path="/my-loans/:id" element={<ProtectedRoute><LoanDetail /></ProtectedRoute>} />
-                <Route path="/kyc" element={<ProtectedRoute><BorrowerKYC /></ProtectedRoute>} />
+                <Route path="/kyc" element={<ProtectedRoute allowedRoles={['borrower']}><BorrowerKYC /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute adminOnly><AdminLoanDashboard /></ProtectedRoute>} />
                 <Route path="/admin/loan-products" element={<ProtectedRoute adminOnly><AdminLoanProducts /></ProtectedRoute>} />
                 <Route path="/admin/loan-applications" element={<ProtectedRoute adminOnly><AdminLoanApplications /></ProtectedRoute>} />
