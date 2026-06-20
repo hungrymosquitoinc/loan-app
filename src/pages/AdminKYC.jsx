@@ -17,9 +17,16 @@ export default function AdminKYC() {
   }
 
   const hasKyc = (b) => b.id_type && b.id_number
+  const kycStatus = (b) => {
+    if (!hasKyc(b)) return 'not_submitted'
+    if (b.kyc_status === 'rejected') return 'rejected'
+    if (b.kyc_status === 'approved') return 'approved'
+    return 'pending'
+  }
   const filtered = borrowers.filter(b => {
-    if (tab === 'pending') return hasKyc(b)
-    if (tab === 'active') return false
+    const s = kycStatus(b)
+    if (tab === 'pending') return s === 'pending'
+    if (tab === 'approved') return s === 'approved'
     return true
   })
 
@@ -32,8 +39,8 @@ export default function AdminKYC() {
   }
 
   const tabs = [
-    { key: 'pending', label: `Pending (${borrowers.filter(hasKyc).length})` },
-    { key: 'active', label: 'Active' },
+    { key: 'pending', label: `Pending (${borrowers.filter(b => kycStatus(b) === 'pending').length})` },
+    { key: 'approved', label: `Approved (${borrowers.filter(b => kycStatus(b) === 'approved').length})` },
     { key: 'all', label: `All (${borrowers.length})` },
   ]
 
@@ -64,11 +71,14 @@ export default function AdminKYC() {
               <div className="checkout-item"><span>Bank</span><span>{selected.bank_name || '—'}</span></div>
               <div className="checkout-item"><span>Account Holder</span><span>{selected.account_holder || selected.name || '—'}</span></div>
               <div className="checkout-item"><span>Account No.</span><span>{selected.account_number || selected.bank_account || '—'}</span></div>
+              <div className="checkout-item"><span>KYC Status</span><span style={{ fontWeight: 700, color: kycStatus(selected) === 'approved' ? '#4caf50' : kycStatus(selected) === 'rejected' ? '#f44336' : '#ff9800' }}>{kycStatus(selected).toUpperCase()}</span></div>
             </div>
+            {kycStatus(selected) === 'pending' && (
             <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
               <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => { approveKYC(selected.id); setSelected(null) }}>Approve</button>
               <button className="btn btn-danger" style={{ flex: 1 }} onClick={() => { rejectKYC(selected.id); setSelected(null) }}>Reject</button>
             </div>
+            )}
           </div>
         </div>
       )}
@@ -81,7 +91,7 @@ export default function AdminKYC() {
             <div key={b.id} className="order-card" style={{ cursor: 'pointer' }} onClick={() => setSelected(b)}>
               <div className="order-card-header">
                 <span className="order-id">{b.name}</span>
-                <span className="order-status status-pending">Review</span>
+                <span className="order-status" style={{ fontWeight: 700, color: kycStatus(b) === 'approved' ? '#4caf50' : kycStatus(b) === 'rejected' ? '#f44336' : '#ff9800' }}>{kycStatus(b).toUpperCase()}</span>
               </div>
               <div className="order-card-items">
                 {b.id_type} | 📞 {b.phone || '—'} | 🏦 {b.bank_name || '—'}
