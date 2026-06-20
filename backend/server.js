@@ -241,10 +241,20 @@ app.post('/api/login-local', (req, res) => {
   res.json({ user: safeUser, token: `token-${user.id}-${Date.now()}` });
 });
 
-app.get('/api/profile/:id', (req, res) => {
+app.get('/api/profile/:id', async (req, res) => {
   const db = readLoanDB();
   const profiles = db._borrower_profiles || [];
-  const user = profiles.find(p => p.id === req.params.id);
+  let user = profiles.find(p => p.id === req.params.id);
+  if (!user && supabaseConfig.supabaseUrl && supabaseConfig.serviceRoleKey) {
+    try {
+      const headers = { Authorization: `Bearer ${supabaseConfig.serviceRoleKey}`, apikey: supabaseConfig.serviceRoleKey }
+      const r = await axios.get(
+        `${supabaseConfig.supabaseUrl}/rest/v1/profiles?id=eq.${req.params.id}&select=*`,
+        { headers }
+      )
+      if (r.data?.[0]) user = r.data[0];
+    } catch {}
+  }
   if (!user) return res.status(404).json({ error: 'Profile not found' });
   const { password: _, ...safeUser } = user;
   safeUser.total_loans = db.loans.filter(l => l.borrower_id === user.id).length;
@@ -285,12 +295,18 @@ app.get('/api/borrowers', async (req, res) => {
       profiles = r.data || []
     } catch {}
   }
-  if (profiles.length === 0) {
-    const db = readLoanDB();
-    profiles = db._borrower_profiles || [];
-  }
   const db = readLoanDB();
-  const borrowers = profiles.map(p => ({
+  const localProfiles = db._borrower_profiles || [];
+  // Merge local JSON data over Supabase profiles (local has extra fields like kyc_status, images)
+  const merged = profiles.map(p => {
+    const local = localProfiles.find(l => l.id === p.id);
+    return local ? { ...p, ...local } : p;
+  });
+  // Add local-only profiles (those not in Supabase)
+  localProfiles.forEach(l => {
+    if (!merged.find(p => p.id === l.id)) merged.push(l);
+  });
+  const borrowers = merged.map(p => ({
     ...p,
     total_loans: db.loans.filter(l => l.borrower_id === p.id).length,
     active_loans: db.loans.filter(l => l.borrower_id === p.id && l.status === 'approved').length,

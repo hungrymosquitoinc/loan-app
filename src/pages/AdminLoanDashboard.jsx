@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useLoan } from '../contexts/LoanContext'
 
 export default function AdminLoanDashboard() {
@@ -53,6 +54,10 @@ export default function AdminLoanDashboard() {
           <span className="stat-label">KYC Queue</span>
         </div>
       </div>
+
+      <Link to="/admin/loan-products" className="btn btn-primary btn-block btn-lg" style={{ textDecoration: 'none', textAlign: 'center', marginTop: 24 }}>
+        Manage Loan Products & Rates
+      </Link>
     </div>
   )
 }

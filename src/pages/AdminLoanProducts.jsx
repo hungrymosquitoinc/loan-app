@@ -90,8 +90,8 @@ export default function AdminLoanProducts() {
       </div>
 
       {showForm && (
-        <div className="modal-overlay" onClick={() => resetForm()}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay">
+          <div className="modal-content">
             <h2>{editing ? 'Edit Product' : 'New Loan Product'}</h2>
             <form onSubmit={handleSubmit}>
               <div className="form-group">

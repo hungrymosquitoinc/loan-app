@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { apiPut } from '../lib/api'
 
 export default function BorrowerProfile() {
-  const { user, logout, changePassword } = useAuth()
+  const { user, logout, changePassword, updateProfile } = useAuth()
   const navigate = useNavigate()
   const [phone, setPhone] = useState(user?.phone || '')
   const [saving, setSaving] = useState(false)
@@ -39,6 +39,7 @@ export default function BorrowerProfile() {
     setSaving(true)
     try {
       await apiPut(`/borrowers/${user.id}/kyc`, { phone })
+      updateProfile({ phone })
       setMsg('Phone updated')
     } catch (e) {
       setMsg(e.message || 'Failed')

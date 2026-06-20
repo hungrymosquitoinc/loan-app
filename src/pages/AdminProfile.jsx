@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { apiPut, apiGet } from '../lib/api'
 
 export default function AdminProfile() {
-  const { user, changePassword } = useAuth()
+  const { user, updateProfile } = useAuth()
   const [form, setForm] = useState({ name: user?.name || '', phone: user?.phone || '' })
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
@@ -25,6 +25,7 @@ export default function AdminProfile() {
     setSaving(true)
     try {
       await apiPut('/admin/profile', { id: user.id, ...form })
+      updateProfile(form)
       setMsg('Profile updated')
     } catch (e) { setMsg(e.message || 'Failed') }
     setSaving(false)
@@ -67,6 +68,7 @@ export default function AdminProfile() {
           <div className="checkout-items">
             <div className="checkout-item"><span>Name</span><span>{user?.name || '—'}</span></div>
             <div className="checkout-item"><span>Email</span><span>{user?.email || '—'}</span></div>
+            <div className="checkout-item"><span>Phone</span><span>{form.phone || '—'}</span></div>
             <div className="checkout-item"><span>Joined</span><span>{joined}</span></div>
           </div>
           <div className="form-group"><label>Phone</label><input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} /></div>
@@ -94,8 +96,8 @@ export default function AdminProfile() {
       </div>
 
       {showPmForm && (
-        <div className="modal-overlay" onClick={() => setShowPmForm(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay">
+          <div className="modal-content">
             <h2>Add Payment Method</h2>
             <div className="form-group">
               <label>Type</label>

@@ -62,11 +62,21 @@ export default function AdminBorrowers() {
         <div className="modal-overlay" onClick={() => setSelected(null)}>
           <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 500 }}>
             <div className="modal-header"><h3>{selected.name}</h3><button className="modal-close" onClick={() => setSelected(null)}>×</button></div>
-            <div style={{ textAlign: 'center', marginBottom: 20 }}>
-              <div style={{ width: 160, height: 160, margin: '0 auto', background: '#f5f5f5', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed var(--border)' }}>
-                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=Borrower:${selected.id}|${selected.name}`} alt="QR" style={{ width: 160, height: 160, borderRadius: 12 }} />
+            {selected.qr_data ? (
+              <div style={{ textAlign: 'center', marginBottom: 20 }}>
+                <div style={{ width: 160, height: 160, margin: '0 auto', background: '#f5f5f5', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed var(--border)' }}>
+                  <img src={selected.qr_data} alt="QR" style={{ width: 160, height: 160, borderRadius: 12, objectFit: 'contain' }} />
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: 4 }}>Borrower's QR</div>
               </div>
-            </div>
+            ) : (
+              <div style={{ textAlign: 'center', marginBottom: 20 }}>
+                <div style={{ width: 160, height: 160, margin: '0 auto', background: '#f5f5f5', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed var(--border)' }}>
+                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=Borrower:${selected.id}|${selected.name}`} alt="QR" style={{ width: 160, height: 160, borderRadius: 12 }} />
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: 4 }}>Generated QR</div>
+              </div>
+            )}
             {selected.id_image && <img src={selected.id_image} alt="ID" style={{ width: '100%', maxHeight: 200, objectFit: 'contain', borderRadius: 8, marginBottom: 8 }} />}
             {selected.selfie_image && <img src={selected.selfie_image} alt="Selfie" style={{ width: '100%', maxHeight: 200, objectFit: 'contain', borderRadius: 8, marginBottom: 8 }} />}
             <div className="checkout-section" style={{ padding: 12, marginBottom: 8 }}>
