@@ -113,6 +113,10 @@ app.post('/api/loans', (req, res) => {
   const db = readLoanDB();
   const { borrower_id, borrower_name, product_id, amount, days, interest_rate, interest_type, frequency, num_payments, purpose, emi } = req.body;
 
+  // Prevent multiple active loans per borrower
+  const existingActive = db.loans.some(l => l.borrower_id === borrower_id && (l.status === 'pending' || l.status === 'approved'));
+  if (existingActive) return res.status(400).json({ error: 'You already have an active loan. Wait for it to be paid before applying again.' });
+
   const rate = parseFloat(interest_rate) || 0;
   let total_interest;
   const freq = frequency || interest_type || 'daily';

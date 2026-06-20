@@ -5,7 +5,7 @@ import { useLoan } from '../contexts/LoanContext'
 
 export default function ApplyLoan() {
   const { user } = useAuth()
-  const { getLoanProducts, applyLoan } = useLoan()
+  const { getLoanProducts, applyLoan, getBorrowerStats } = useLoan()
   const navigate = useNavigate()
   const [products, setProducts] = useState([])
   const [selectedProduct, setSelectedProduct] = useState(null)
@@ -16,8 +16,16 @@ export default function ApplyLoan() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [existingLoan, setExistingLoan] = useState(false)
 
-  useEffect(() => { loadProducts() }, [])
+  useEffect(() => { loadProducts(); checkExistingLoan() }, [])
+
+  async function checkExistingLoan() {
+    try {
+      const stats = await getBorrowerStats(user.id)
+      if (stats.active > 0 || stats.pending > 0) setExistingLoan(true)
+    } catch {}
+  }
 
   async function loadProducts() {
     try {
@@ -92,6 +100,8 @@ export default function ApplyLoan() {
 
       {products.length === 0 ? (
         <div className="empty-state"><span className="empty-icon">📋</span><h2>No loan products available</h2><p>Check back later</p></div>
+      ) : existingLoan ? (
+        <div className="empty-state"><span className="empty-icon">✅</span><h2>You already have an active loan</h2><p>You can only have one active loan at a time. Wait for your current loan to be fully paid before applying again.</p><button className="btn btn-primary" onClick={() => navigate('/my-loans')}>View My Loans</button></div>
       ) : (
         <form onSubmit={handleSubmit}>
           <div className="form-group">
