@@ -5,7 +5,6 @@ import { useLoan } from '../contexts/LoanContext'
 export default function MyLoans() {
   const { user } = useAuth()
   const { getLoans } = useLoan()
-  const navigate = useNavigate()
   const [loans, setLoans] = useState([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('active')
