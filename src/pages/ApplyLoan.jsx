@@ -18,7 +18,7 @@ export default function ApplyLoan() {
   const [submitting, setSubmitting] = useState(false)
   const [existingLoan, setExistingLoan] = useState(false)
 
-  useEffect(() => { loadProducts(); checkExistingLoan() }, [])
+  useEffect(() => { if (user) { loadProducts(); checkExistingLoan() } }, [user])
 
   async function checkExistingLoan() {
     try {

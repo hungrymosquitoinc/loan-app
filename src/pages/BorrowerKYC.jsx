@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useLoan } from '../contexts/LoanContext'
 
 export default function BorrowerKYC() {
-  const { user } = useAuth()
+  const { user, updateProfile } = useAuth()
   const { updateKYC } = useLoan()
   const navigate = useNavigate()
   const [form, setForm] = useState({
@@ -50,6 +50,7 @@ export default function BorrowerKYC() {
         account_number: form.account_number,
         bank_account: form.account_number,
       })
+      updateProfile(form)
       setSuccess('KYC information updated successfully')
     } catch (e) {
       setError(e.message || 'Failed to update KYC')
