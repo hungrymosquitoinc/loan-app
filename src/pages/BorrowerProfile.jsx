@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { apiPut } from '../lib/api'
@@ -12,6 +12,10 @@ export default function BorrowerProfile() {
   const [showChangePw, setShowChangePw] = useState(false)
   const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' })
   const [pwMsg, setPwMsg] = useState('')
+
+  useEffect(() => {
+    if (user?.phone && !phone) setPhone(user.phone)
+  }, [user?.phone])
 
   const validatePassword = (pw) => {
     if (pw.length < 8) return 'Password must be at least 8 characters'
@@ -61,6 +65,7 @@ export default function BorrowerProfile() {
         <div className="checkout-items">
           <div className="checkout-item"><span>Name</span><span>{user?.name || '—'}</span></div>
           <div className="checkout-item"><span>Email</span><span>{user?.email || '—'}</span></div>
+          <div className="checkout-item"><span>Phone</span><span>{phone || user?.phone || '—'}</span></div>
           <div className="checkout-item"><span>Joined</span><span>{joined}</span></div>
           <div className="checkout-item">
             <span>KYC Status</span>
