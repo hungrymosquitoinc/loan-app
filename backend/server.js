@@ -348,12 +348,20 @@ app.put('/api/borrowers/:id/kyc', async (req, res) => {
   if (supabaseConfig.supabaseUrl && supabaseConfig.serviceRoleKey) {
     try {
       const headers = { Authorization: `Bearer ${supabaseConfig.serviceRoleKey}`, apikey: supabaseConfig.serviceRoleKey, 'Content-Type': 'application/json', Prefer: 'return=representation' }
-      const r = await axios.patch(
-        `${supabaseConfig.supabaseUrl}/rest/v1/profiles?id=eq.${req.params.id}`,
-        req.body,
-        { headers }
-      )
-      if (r.data?.[0]) updated = r.data[0];
+      // Only send columns that exist in Supabase profiles table (skip large image fields)
+      const supabaseFields = ['name', 'phone', 'address', 'id_type', 'id_number', 'bank_name', 'bank_account', 'qr_data'];
+      const supabaseData = {};
+      for (const key of supabaseFields) {
+        if (req.body[key] !== undefined) supabaseData[key] = req.body[key];
+      }
+      if (Object.keys(supabaseData).length > 0) {
+        const r = await axios.patch(
+          `${supabaseConfig.supabaseUrl}/rest/v1/profiles?id=eq.${req.params.id}`,
+          supabaseData,
+          { headers, timeout: 10000 }
+        )
+        if (r.data?.[0]) updated = r.data[0];
+      }
     } catch {}
   }
   const db = readLoanDB();
