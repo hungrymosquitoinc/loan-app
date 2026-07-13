@@ -23,7 +23,7 @@ try {
     supabaseConfig.anonKey = supabaseConfig.anonKey || fileConfig.anonKey || ''
     supabaseConfig.serviceRoleKey = supabaseConfig.serviceRoleKey || fileConfig.serviceRoleKey || ''
   }
-} catch {}
+} catch (e) { console.error('Config load:', e.message) }
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -127,7 +127,8 @@ async function authenticate(req, res, next) {
         { headers: sbHeaders(), timeout: 3000 }
       );
       user.role = profileRes.data?.[0]?.role || 'borrower';
-    } catch {
+    } catch (e) {
+      console.error('Profile fetch error:', e.message)
       user.role = 'borrower';
     }
     req.user = user;
@@ -381,9 +382,20 @@ app.post('/api/loans/:id/pay', authenticate, requireAdmin, async (req, res) => {
 
 // === Registration ===
 
+function validatePassword(pw) {
+  if (pw.length < 8) return 'Password must be at least 8 characters'
+  if (!/[A-Z]/.test(pw)) return 'Password must contain an uppercase letter'
+  if (!/[a-z]/.test(pw)) return 'Password must contain a lowercase letter'
+  if (!/[0-9]/.test(pw)) return 'Password must contain a number'
+  if (!/[^A-Za-z0-9]/.test(pw)) return 'Password must contain a special character'
+  return null
+}
+
 app.post('/api/register', async (req, res) => {
   const { name, email, password, phone } = req.body;
   if (!name || !email || !password) return res.status(400).json({ error: 'name, email, and password required' });
+  const pwErr = validatePassword(password)
+  if (pwErr) return res.status(400).json({ error: pwErr });
 
   const profiles = await readData('_borrower_profiles')
   if (profiles.find(p => p.email === email)) return res.status(400).json({ error: 'Email already registered' });
