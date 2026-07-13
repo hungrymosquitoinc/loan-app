@@ -559,6 +559,7 @@ app.put('/api/borrowers/:id/kyc', authenticate, requireSameUserOrAdmin, async (r
   res.json({ success: true })
 });
 
-app.listen(PORT, '127.0.0.1', () => {
-  console.log(`Loan API running on http://127.0.0.1:${PORT}`);
+const bindHost = process.env.RENDER ? '0.0.0.0' : '127.0.0.1'
+app.listen(PORT, bindHost, () => {
+  console.log(`Loan API running on http://${bindHost}:${PORT}`);
 });
