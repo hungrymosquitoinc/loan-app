@@ -8,6 +8,8 @@ const axios = require('axios');
 
 let supabaseConfig = {
   supabaseUrl: process.env.SUPABASE_URL || '',
+  publishableKey: process.env.SUPABASE_PUBLISHABLE_KEY || '',
+  secretKey: process.env.SUPABASE_SECRET_KEY || '',
   anonKey: process.env.SUPABASE_ANON_KEY || '',
   serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
 }
@@ -16,6 +18,8 @@ try {
   if (fs.existsSync(SUPABASE_CONFIG_PATH)) {
     const fileConfig = JSON.parse(fs.readFileSync(SUPABASE_CONFIG_PATH, 'utf-8'))
     supabaseConfig.supabaseUrl = supabaseConfig.supabaseUrl || fileConfig.supabaseUrl || ''
+    supabaseConfig.publishableKey = supabaseConfig.publishableKey || fileConfig.publishableKey || fileConfig.anonKey || ''
+    supabaseConfig.secretKey = supabaseConfig.secretKey || fileConfig.secretKey || fileConfig.serviceRoleKey || ''
     supabaseConfig.anonKey = supabaseConfig.anonKey || fileConfig.anonKey || ''
     supabaseConfig.serviceRoleKey = supabaseConfig.serviceRoleKey || fileConfig.serviceRoleKey || ''
   }
@@ -50,7 +54,8 @@ const authLimiter = rateLimit({
 app.use('/api/register', authLimiter);
 
 function sbHeaders() {
-  return { Authorization: `Bearer ${supabaseConfig.serviceRoleKey}`, apikey: supabaseConfig.serviceRoleKey, 'Content-Type': 'application/json', Prefer: 'return=representation' }
+  const key = supabaseConfig.secretKey || supabaseConfig.serviceRoleKey
+  return { apikey: key, 'Content-Type': 'application/json', Prefer: 'return=representation' }
 }
 
 async function readData(key) {
@@ -95,7 +100,7 @@ async function mutateData(key, fn) {
 // Auth middleware
 
 function isSupabaseConfigured() {
-  return supabaseConfig.supabaseUrl && supabaseConfig.anonKey && supabaseConfig.serviceRoleKey;
+  return supabaseConfig.supabaseUrl && ((supabaseConfig.publishableKey && supabaseConfig.secretKey) || (supabaseConfig.anonKey && supabaseConfig.serviceRoleKey));
 }
 
 async function authenticate(req, res, next) {
@@ -108,8 +113,9 @@ async function authenticate(req, res, next) {
     return res.status(500).json({ error: 'Authentication not configured' });
   }
   try {
+    const apikey = supabaseConfig.publishableKey || supabaseConfig.anonKey
     const r = await axios.get(`${supabaseConfig.supabaseUrl}/auth/v1/user`, {
-      headers: { apikey: supabaseConfig.anonKey, Authorization: `Bearer ${token}` },
+      headers: { apikey, Authorization: `Bearer ${token}` },
       timeout: 5000
     });
     if (!r.data?.id) return res.status(401).json({ error: 'Invalid token' });
@@ -529,7 +535,7 @@ app.put('/api/borrowers/:id/kyc', authenticate, requireSameUserOrAdmin, async (r
   if (req.body.kyc_status !== undefined && !isAdminAction) {
     return res.status(403).json({ error: 'Only admin can set KYC status' });
   }
-  if (data.kyc_status === undefined) data.kyc_status = '';
+  if (data.kyc_status === undefined) data.kyc_status = 'pending';
   data.id = req.params.id;
   if (isSupabaseConfigured()) {
     try {
