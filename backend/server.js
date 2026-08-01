@@ -799,6 +799,9 @@ app.post('/api/register', authLimiter, requireSupabase, validateRequest(register
         return res.status(400).json({ error: 'This ID number is already registered' });
       return res.status(400).json({ error: 'Email already registered' });
     }
+    if (e.response?.status === 429) {
+      return res.status(429).json({ error: 'Too many confirmation emails sent recently. Please try again in about an hour.' });
+    }
     logSafe('Registration', e.message);
     return res.status(500).json({ error: 'Registration failed. Contact support.' });
   }
