@@ -78,7 +78,7 @@ const PORT = process.env.PORT || 3001;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
-  : ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000'];
+  : ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000', 'https://localhost', 'capacitor://localhost'];
 
 // --- Safe Logging ---
 
@@ -166,10 +166,9 @@ app.use(helmet({
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin && !IS_PRODUCTION) return callback(null, true);
-    if (!origin) return callback(new Error('Not allowed by CORS'));
+    if (!origin) return callback(null, true);
     if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
-    callback(new Error('Not allowed by CORS'));
+    return callback(null, false);
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
