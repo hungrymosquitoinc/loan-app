@@ -748,26 +748,23 @@ app.post('/api/register', authLimiter, requireSupabase, validateRequest(register
 
   let userId;
   try {
-    const createRes = await axios.post(
-      `${supabaseConfig.supabaseUrl}/auth/v1/admin/users`,
+    const signupKey = supabaseConfig.publishableKey || supabaseConfig.anonKey;
+    const signupRes = await axios.post(
+      `${supabaseConfig.supabaseUrl}/auth/v1/signup`,
       {
         email,
         password,
-        email_confirm: true,
-        user_metadata: { name, phone, email_verified: true, phone_verified: false },
+        data: { name, phone, email_verified: false, phone_verified: false },
       },
-      { headers: { ...sbHeaders(), Prefer: 'return=representation' }, timeout: 10000 }
+      { headers: { apikey: signupKey, 'Content-Type': 'application/json' }, timeout: 10000 }
     );
-    if (!createRes.data?.id) throw new Error('No user ID returned');
-    userId = createRes.data.id;
 
-    if (!createRes.data.email_confirmed_at) {
-      await axios.put(
-        `${supabaseConfig.supabaseUrl}/auth/v1/admin/users/${userId}`,
-        { email_confirm: true },
-        { headers: sbHeaders(), timeout: 5000 }
-      );
+    // Supabase returns200 with empty identities for existing users (no enumeration)
+    if (signupRes.data?.identities?.length === 0) {
+      return res.status(400).json({ error: 'Email already registered' });
     }
+    userId = signupRes.data?.id;
+    if (!userId) throw new Error('No user ID returned from signup');
 
     await axios.post(
       `${supabaseConfig.supabaseUrl}/rest/v1/profiles`,

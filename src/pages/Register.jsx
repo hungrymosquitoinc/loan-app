@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function Register() {
@@ -8,8 +8,8 @@ export default function Register() {
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [registered, setRegistered] = useState(false)
   const { register } = useAuth()
-  const navigate = useNavigate()
 
   const validatePassword = (pw) => {
     if (pw.length < 8) return 'Password must be at least 8 characters'
@@ -31,10 +31,32 @@ export default function Register() {
         setError(res.error || 'Registration failed')
         return
       }
-      navigate('/login')
+      setRegistered(true)
     } catch (e) {
       setError(e.message || 'Registration failed')
     }
+  }
+
+  if (registered) {
+    return (
+      <div className="auth-page">
+        <div className="auth-card" style={{ textAlign: 'center' }}>
+          <img src="/logo.png" alt="JSR Lending Inc" style={{ width: 220, height: 116, borderRadius: 0, objectFit: 'cover', margin: '0 auto 16px', display: 'block' }} />
+          <div style={{ fontSize: 48, marginBottom: 12 }}>📧</div>
+          <h1>Check Your Email</h1>
+          <p style={{ color: 'var(--text-secondary)', margin: '12px 0 20px', lineHeight: 1.6 }}>
+            We sent a confirmation link to <strong style={{ color: 'var(--primary)' }}>{email}</strong>.<br />
+            Click the link in the email to verify your account,<br />
+            then sign in.
+          </p>
+          <Link to="/login" className="btn btn-primary btn-block">Go to Sign In</Link>
+          <p className="auth-footer" style={{ marginTop: 12 }}>
+            Didn't receive it? Check your spam folder or{' '}
+            <span onClick={() => setRegistered(false)} style={{ color: 'var(--primary)', textDecoration: 'underline', cursor: 'pointer' }}>try again</span>.
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (

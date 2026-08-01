@@ -67,6 +67,7 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       if (error.message.includes('Invalid')) return { ok: false, reason: 'invalid' }
+      if (error.message.toLowerCase().includes('not confirmed')) return { ok: false, reason: 'unconfirmed' }
       return { ok: false, reason: error.message }
     }
     if (data?.user) {

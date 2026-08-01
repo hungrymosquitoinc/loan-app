@@ -15,6 +15,7 @@ export default function Login() {
     const res = await login(email, password)
     if (!res.ok) {
       if (res.reason === 'inactive') setError('Your account has been deactivated. Contact the administrator.')
+      else if (res.reason === 'unconfirmed') setError('Please confirm your email first. Check your inbox for the confirmation link.')
       else setError('Invalid email or password')
       return
     }
