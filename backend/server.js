@@ -1133,6 +1133,19 @@ app.put('/api/notifications/read-all', authenticate, requireAdmin, requireSupaba
   }
 });
 
+// --- Serve the built web app (hosted UI mode) ---
+
+const DIST_DIR = path.join(__dirname, '..', 'dist');
+if (fs.existsSync(path.join(DIST_DIR, 'index.html'))) {
+  app.use(express.static(DIST_DIR));
+  app.get(/^\/(?!api\/).*/, (req, res) => {
+    res.sendFile(path.join(DIST_DIR, 'index.html'));
+  });
+  console.log('Serving web app from ' + DIST_DIR);
+} else {
+  console.log('dist not found - API only: ' + DIST_DIR);
+}
+
 // --- Start Server ---
 
 const bindHost = IS_PRODUCTION ? '0.0.0.0' : '127.0.0.1';
