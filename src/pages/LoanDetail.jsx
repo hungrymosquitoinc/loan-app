@@ -115,7 +115,7 @@ export default function LoanDetail() {
         {(loan.paid_amount || 0) > 0 && (loan.paid_amount || 0) < loan.total_payable && (
           <div className="checkout-total" style={{ marginTop: 8 }}>
             <strong>Remaining</strong>
-            <strong style={{ color: '#f44336' }}>₱{(loan.total_payable - (loan.paid_amount || 0))?.toLocaleString()}</strong>
+            <strong style={{ color: '#f44336' }}>₱{Math.max(0, loan.total_payable - (loan.paid_amount || 0)).toLocaleString()}</strong>
           </div>
         )}
       </div>

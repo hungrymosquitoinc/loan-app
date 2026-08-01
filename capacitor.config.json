@@ -1,6 +1,6 @@
 {
-  "appId": "com.loanapp.app",
-  "appName": "LoanApp",
+  "appId": "com.jsrlending.app",
+  "appName": "JSR Lending",
   "webDir": "dist",
   "bundledWebRuntime": false,
   "server": {

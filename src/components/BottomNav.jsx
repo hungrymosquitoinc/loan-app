@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function BottomNav() {
-  const { user, logout } = useAuth()
+  const { user, loading } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
 

@@ -6,22 +6,6 @@ const LoanContext = createContext(null)
 export function LoanProvider({ children }) {
   const [loading, setLoading] = useState(false)
 
-  const getLoanProducts = useCallback(async (all = false) => {
-    return await apiGet(`/loan/products${all ? '?all=true' : ''}`)
-  }, [])
-
-  const createProduct = useCallback(async (product) => {
-    return await apiPost('/loan/products', product)
-  }, [])
-
-  const updateProduct = useCallback(async (id, data) => {
-    return await apiPut(`/loan/products/${id}`, data)
-  }, [])
-
-  const deleteProduct = useCallback(async (id) => {
-    return await apiDelete(`/loan/products/${id}`)
-  }, [])
-
   const getLoans = useCallback(async (filters = {}) => {
     const params = new URLSearchParams()
     if (filters.borrowerId) params.set('borrowerId', filters.borrowerId)
@@ -42,8 +26,8 @@ export function LoanProvider({ children }) {
     return await apiPost('/loans', loanData)
   }, [])
 
-  const approveLoan = useCallback(async (id, approvedBy) => {
-    return await apiPost(`/loans/${id}/approve`, { approved_by: approvedBy })
+  const approveLoan = useCallback(async (id, data) => {
+    return await apiPost(`/loans/${id}/approve`, data)
   }, [])
 
   const rejectLoan = useCallback(async (id, reason) => {
@@ -66,13 +50,16 @@ export function LoanProvider({ children }) {
     return await apiPut(`/borrowers/${borrowerId}/kyc`, data)
   }, [])
 
+  const deleteBorrower = useCallback(async (borrowerId) => {
+    return await apiDelete(`/borrowers/${borrowerId}`)
+  }, [])
+
   return (
     <LoanContext.Provider value={{
       loading, setLoading,
-      getLoanProducts, createProduct, updateProduct, deleteProduct,
       getLoans, getLoanStats, getBorrowerStats,
       applyLoan, approveLoan, rejectLoan, recordPayment, updateLoan,
-      getBorrowers, updateKYC,
+      getBorrowers, updateKYC, deleteBorrower,
     }}>
       {children}
     </LoanContext.Provider>

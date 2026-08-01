@@ -34,24 +34,29 @@ create table if not exists loan_products (
 
 -- Loans table
 create table if not exists loans (
-  id bigserial primary key,
+  id text primary key,
   borrower_id uuid references auth.users(id) on delete cascade,
-  borrower_name text not null,
-  product_id bigint references loan_products(id),
+  borrower_name text not null default '',
+  product_id bigint,
   amount numeric(12,2) not null,
-  days integer not null,
-  interest_rate numeric(5,2) not null,
-  interest_type text not null,
+  days integer not null default 0,
+  interest_rate numeric(5,2) not null default 0,
+  interest_type text not null default '',
   frequency text not null default 'daily',
-  total_interest numeric(12,2) not null,
-  total_payable numeric(12,2) not null,
+  total_interest numeric(12,2) not null default 0,
+  total_payable numeric(12,2) not null default 0,
+  num_payments integer not null default 0,
+  emi numeric(12,2) not null default 0,
+  paid_amount numeric(12,2) not null default 0,
+  purpose text default '',
   status text not null default 'pending' check (status in ('pending', 'approved', 'rejected', 'paid')),
   applied_at timestamptz default now(),
   approved_at timestamptz,
-  approved_by uuid references auth.users(id),
+  approved_by text default '',
   rejected_reason text default '',
   paid_at timestamptz,
-  notes text default ''
+  notes text default '',
+  payments jsonb default '[]'::jsonb
 );
 
 -- Loan payments table

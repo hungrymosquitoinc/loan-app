@@ -37,6 +37,15 @@ input, textarea { user-select: text; -webkit-user-select: text; }
 .app { max-width: var(--max-width); margin: 0 auto; min-height: 100vh; position: relative; }
 .main-content { padding: 16px 16px 100px; }
 
+.app-footer {
+  text-align: center;
+  padding: 16px 12px 76px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  background: #fafafa;
+  border-top: 1px solid var(--border);
+}
+
 /* ===== Navbar ===== */
 .navbar {
   position: sticky; top: 0; z-index: 100;
@@ -48,7 +57,7 @@ input, textarea { user-select: text; -webkit-user-select: text; }
   box-shadow: var(--shadow);
 }
 .nav-brand { font-size: 1.25rem; font-weight: 800; color: white; text-decoration: none; letter-spacing: -0.5px; padding: 8px 0; }
-.nav-links { display: flex; align-items: center; gap: 2px; margin-left: auto; overflow-x: auto; }
+.nav-links { display: flex; align-items: center; gap: 2px; margin-left: auto; overflow-x: visible; }
 .nav-link {
   color: rgba(255,255,255,0.85);
   text-decoration: none;
@@ -405,3 +414,277 @@ input, textarea { user-select: text; -webkit-user-select: text; }
   .app { max-width: 768px; }
   .stats-grid { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* ===== Animations ===== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in { animation: fadeIn 0.3s ease-out; }
+.animate-slide-up { animation: slideUp 0.35s ease-out; }
+.animate-slide-in { animation: slideIn 0.3s ease-out; }
+.animate-scale-in { animation: scaleIn 0.25s ease-out; }
+.animate-count-up { animation: countUp 0.4s ease-out; }
+
+.order-card { animation: slideUp 0.3s ease-out; }
+.order-card:nth-child(2) { animation-delay: 0.05s; animation-fill-mode: both; }
+.order-card:nth-child(3) { animation-delay: 0.1s; animation-fill-mode: both; }
+.order-card:nth-child(4) { animation-delay: 0.15s; animation-fill-mode: both; }
+.order-card:nth-child(5) { animation-delay: 0.2s; animation-fill-mode: both; }
+
+.modal-overlay { animation: fadeIn 0.2s ease-out; }
+.modal-content { animation: scaleIn 0.25s ease-out; }
+
+.stat-card { animation: slideUp 0.35s ease-out; }
+.stat-card:nth-child(2) { animation-delay: 0.05s; animation-fill-mode: both; }
+.stat-card:nth-child(3) { animation-delay: 0.1s; animation-fill-mode: both; }
+.stat-card:nth-child(4) { animation-delay: 0.15s; animation-fill-mode: both; }
+
+.stat-value { animation: countUp 0.5s ease-out; }
+
+.notif-panel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 340px;
+  max-height: 420px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  z-index: 1000;
+  overflow: hidden;
+  animation: scaleIn 0.2s ease-out;
+}
+.notif-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #eee;
+}
+.notif-mark-all {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 0.78rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+.notif-panel-body {
+  max-height: 360px;
+  overflow-y: auto;
+}
+.notif-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: #999;
+  font-size: 0.85rem;
+}
+.notif-item {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #f5f5f5;
+  transition: background 0.15s;
+}
+.notif-item:hover { background: #f9f9f9; }
+.notif-item.unread { background: #e3f2fd; }
+.notif-item.unread:hover { background: #bbdefb; }
+.notif-item-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+.notif-item-content { flex: 1; min-width: 0; }
+.notif-item-title { font-weight: 600; font-size: 0.85rem; color: #333; }
+.notif-item-message { font-size: 0.78rem; color: #666; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.notif-item-time { font-size: 0.7rem; color: #999; margin-top: 4px; }
+
+/* ===== Page Transition ===== */
+.page-enter { animation: pageSlideIn 0.3s ease-out; }
+@keyframes pageSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Auth Card Entrance ===== */
+.auth-card { animation: authCardIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes authCardIn {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ===== Hero Staggered Entrance ===== */
+.hero-badge { animation: heroItemIn 0.4s ease-out 0.1s both; }
+.hero h1 { animation: heroItemIn 0.4s ease-out 0.2s both; }
+.hero p { animation: heroItemIn 0.4s ease-out 0.3s both; }
+@keyframes heroItemIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Form Group Stagger ===== */
+.form-group { animation: formGroupIn 0.3s ease-out both; }
+.form-group:nth-child(1) { animation-delay: 0.05s; }
+.form-group:nth-child(2) { animation-delay: 0.1s; }
+.form-group:nth-child(3) { animation-delay: 0.15s; }
+.form-group:nth-child(4) { animation-delay: 0.2s; }
+.form-group:nth-child(5) { animation-delay: 0.25s; }
+.form-group:nth-child(6) { animation-delay: 0.3s; }
+@keyframes formGroupIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ===== Card Hover Effects ===== */
+.order-card { transition: transform 0.2s ease, box-shadow 0.2s ease; cursor: pointer; }
+.order-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+.order-card:active { transform: scale(0.98); }
+
+.checkout-section { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.checkout-section:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+
+/* ===== Button Hover Effects ===== */
+.btn { transition: all 0.2s ease; position: relative; overflow: hidden; }
+.btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.btn:active { transform: scale(0.96) translateY(0); box-shadow: none; }
+.btn-primary:hover { background: var(--primary-dark); box-shadow: 0 4px 16px rgba(21,101,192,0.35); }
+.btn-danger:hover { background: #d32f2f; box-shadow: 0 4px 16px rgba(244,67,54,0.35); }
+.btn-secondary:hover { background: #ffb300; box-shadow: 0 4px 16px rgba(255,160,0,0.35); }
+
+/* ===== Tab Switching ===== */
+.tab-bar { transition: all 0.2s ease; }
+.tab-bar button { transition: all 0.2s ease; position: relative; }
+.tab-bar button::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 3px;
+  background: var(--primary);
+  border-radius: 2px;
+  transition: all 0.25s ease;
+  transform: translateX(-50%);
+}
+.tab-bar button.active::after { width: 60%; }
+
+/* ===== Loading Skeleton ===== */
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+.page-loading {
+  animation: fadeIn 0.3s ease-out;
+}
+.page-loading::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 4px;
+  background: var(--primary);
+  border-radius: 2px;
+  margin: 16px auto 0;
+  animation: loadingPulse 1.2s ease-in-out infinite;
+}
+@keyframes loadingPulse {
+  0%, 100% { opacity: 0.3; transform: scaleX(0.5); }
+  50% { opacity: 1; transform: scaleX(1); }
+}
+
+/* ===== Empty State Bounce ===== */
+.empty-icon { animation: emptyBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both; }
+@keyframes emptyBounce {
+  from { opacity: 0; transform: scale(0.3) rotate(-10deg); }
+  to { opacity: 1; transform: scale(1) rotate(0); }
+}
+.empty-state h2 { animation: slideUp 0.35s ease-out 0.3s both; }
+.empty-state p { animation: slideUp 0.35s ease-out 0.4s both; }
+.empty-state .btn { animation: slideUp 0.35s ease-out 0.5s both; }
+
+/* ===== Notification Bell Pulse ===== */
+@keyframes bellPulse {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.15); }
+  50% { transform: scale(0.95); }
+  75% { transform: scale(1.08); }
+}
+.notif-bell-pulse { animation: bellPulse 0.5s ease; }
+
+/* ===== Bottom Nav Active Indicator ===== */
+.bottom-nav a.active { position: relative; }
+.bottom-nav a.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  background: var(--primary);
+  border-radius: 0 0 3px 3px;
+  animation: navIndicator 0.3s ease-out;
+}
+@keyframes navIndicator {
+  from { width: 0; opacity: 0; }
+  to { width: 24px; opacity: 1; }
+}
+.bottom-nav a .nav-icon { transition: transform 0.2s ease; }
+.bottom-nav a.active .nav-icon { transform: scale(1.15); }
+
+/* ===== Alert Slide Down ===== */
+.alert { animation: alertSlideDown 0.3s ease-out; }
+@keyframes alertSlideDown {
+  from { opacity: 0; transform: translateY(-10px); max-height: 0; padding: 0 18px; margin-bottom: 0; }
+  to { opacity: 1; transform: translateY(0); max-height: 200px; }
+}
+
+/* ===== Stat Card Enhanced ===== */
+.stat-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+
+/* ===== Checkout Section Stagger ===== */
+.checkout-section:nth-child(1) { animation: slideUp 0.3s ease-out 0.05s both; }
+.checkout-section:nth-child(2) { animation: slideUp 0.3s ease-out 0.1s both; }
+.checkout-section:nth-child(3) { animation: slideUp 0.3s ease-out 0.15s both; }
+.checkout-section:nth-child(4) { animation: slideUp 0.3s ease-out 0.2s both; }
+
+/* ===== KYC Status Banners ===== */
+.kyc-approved-banner { animation: kycBannerIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.kyc-pending-banner { animation: kycBannerIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes kycBannerIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ===== Image Preview Zoom ===== */
+.checkout-section img { transition: transform 0.3s ease; }
+.checkout-section img:hover { transform: scale(1.02); }
+
+/* ===== Admin Quick Action Buttons ===== */
+.admin-page .btn-primary { transition: all 0.2s ease; }
+.admin-page .btn-primary:hover { transform: translateY(-2px); }

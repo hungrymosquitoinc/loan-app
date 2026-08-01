@@ -1,39 +1,58 @@
+import { supabase } from './supabase'
+
 const API_BASE = import.meta.env.VITE_API_URL || '/api'
 
-export async function apiGet(path) {
-  const res = await fetch(`${API_BASE}${path}`)
-  if (!res.ok) throw new Error(await res.text())
+async function getAuthHeaders() {
+  const { data: { session } } = await supabase.auth.getSession()
+  const token = session?.access_token
+  const headers = {}
+  if (token) headers['Authorization'] = `Bearer ${token}`
+  return headers
+}
+
+async function handleResponse(res) {
+  if (res.status === 401) {
+    window.location.href = '#/login'
+    throw new Error('Session expired')
+  }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }))
+    throw new Error(err.error || 'Request failed')
+  }
   return res.json()
+}
+
+export async function apiGet(path) {
+  const headers = await getAuthHeaders()
+  const res = await fetch(`${API_BASE}${path}`, { headers })
+  return handleResponse(res)
 }
 
 export async function apiPost(path, body) {
+  const headers = await getAuthHeaders()
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...headers, 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }))
-    throw new Error(err.error || 'Request failed')
-  }
-  return res.json()
+  return handleResponse(res)
 }
 
 export async function apiPut(path, body) {
+  const headers = await getAuthHeaders()
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...headers, 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }))
-    throw new Error(err.error || 'Request failed')
-  }
-  return res.json()
+  return handleResponse(res)
 }
 
 export async function apiDelete(path) {
-  const res = await fetch(`${API_BASE}${path}`, { method: 'DELETE' })
-  if (!res.ok) throw new Error(await res.text())
-  return res.json()
+  const headers = await getAuthHeaders()
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'DELETE',
+    headers,
+  })
+  return handleResponse(res)
 }

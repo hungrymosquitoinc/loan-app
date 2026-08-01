@@ -26,11 +26,12 @@ export default function Register() {
     const pwErr = validatePassword(password)
     if (pwErr) { setError(pwErr); return }
     try {
-      if (!await register(name, email, password, phone)) {
-        setError('Email already in use')
+      const res = await register(name, email, password, phone)
+      if (!res.ok) {
+        setError(res.error || 'Registration failed')
         return
       }
-      navigate('/')
+      navigate('/login')
     } catch (e) {
       setError(e.message || 'Registration failed')
     }
@@ -39,6 +40,7 @@ export default function Register() {
   return (
     <div className="auth-page">
       <div className="auth-card">
+        <img src="/logo.png" alt="JSR Lending Inc" style={{ width: 220, height: 116, borderRadius: 0, margin: '0 auto 16px', display: 'block' }} />
         <h1>Borrower Registration</h1>
         <p className="auth-subtitle">Create your account to apply for loans</p>
         {error && <div className="alert alert-error">{error}</div>}
@@ -59,6 +61,21 @@ export default function Register() {
             <label>Password</label>
             <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Min 8 chars, uppercase, lowercase, number, special" required />
           </div>
+          {password && (
+            <div style={{ fontSize: '0.78rem', marginBottom: 12 }}>
+              {[
+                { label: 'At least 8 characters', test: pw => pw.length >= 8 },
+                { label: 'Uppercase letter', test: pw => /[A-Z]/.test(pw) },
+                { label: 'Lowercase letter', test: pw => /[a-z]/.test(pw) },
+                { label: 'Number', test: pw => /[0-9]/.test(pw) },
+                { label: 'Special character', test: pw => /[^A-Za-z0-9]/.test(pw) },
+              ].map(({ label, test }) => (
+                <div key={label} style={{ color: test(password) ? '#4caf50' : '#9e9e9e', marginBottom: 2 }}>
+                  {test(password) ? '✓' : '○'} {label}
+                </div>
+              ))}
+            </div>
+          )}
           <button type="submit" className="btn btn-primary btn-block">Create Account</button>
         </form>
         <p className="auth-footer">

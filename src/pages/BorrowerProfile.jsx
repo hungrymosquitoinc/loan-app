@@ -51,7 +51,7 @@ export default function BorrowerProfile() {
     setSaving(false)
   }
 
-  const kycStatus = user?.id_type && user?.id_number ? 'Approved' : 'Not Submitted'
+  const kycStatus = user?.kyc_status === 'approved' ? 'Approved' : user?.kyc_status === 'pending' ? 'Pending Review' : user?.kyc_status === 'rejected' ? 'Rejected' : 'Not Submitted'
   const joined = user?.created_at ? new Date(user.created_at).toLocaleDateString() : '—'
 
   return (

@@ -1,9 +1,13 @@
 node_modules/
 dist/
 .env
+backend/supabase-config.json
+backend/.env
+backend/*.local
 android/.gradle/
 android/build/
 android/app/build/
 android/local.properties
 *.log
 .DS_Store
+*.apk

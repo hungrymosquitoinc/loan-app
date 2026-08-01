@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { apiPost } from '../lib/api'
 
 const AuthContext = createContext(null)
 
@@ -8,19 +9,23 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   async function fetchProfile(userId) {
+    const authHeaders = {}
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.access_token) authHeaders['Authorization'] = `Bearer ${session.access_token}`
+    } catch {}
     try {
       const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
       if (data) {
-        // Merge with backend data for extended fields (kyc_status, images, etc.)
         try {
-          const r = await fetch(`${import.meta.env.VITE_API_URL}/profile/${userId}`)
+          const r = await fetch(`${import.meta.env.VITE_API_URL}/profile/${userId}`, { headers: authHeaders })
           if (r.ok) { const ext = await r.json(); return { ...data, ...ext } }
         } catch {}
         return data
       }
     } catch {}
     try {
-      const r = await fetch(`${import.meta.env.VITE_API_URL}/profile/${userId}`)
+      const r = await fetch(`${import.meta.env.VITE_API_URL}/profile/${userId}`, { headers: authHeaders })
       if (r.ok) return await r.json()
     } catch {}
     return null
@@ -38,14 +43,18 @@ export function AuthProvider({ children }) {
       setLoading(false)
     }).catch(() => setLoading(false))
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       try {
-        if (session?.user) {
-          const profile = await fetchProfile(session.user.id)
-          if (profile) setUser({ id: session.user.id, email: session.user.email, ...profile })
-          else setUser({ id: session.user.id, email: session.user.email })
-        } else {
+        if (event === 'SIGNED_OUT') {
           setUser(null)
+        } else if (event === 'TOKEN_REFRESHED') {
+          return
+        } else if (session?.user) {
+          const profile = await fetchProfile(session.user.id)
+          setUser(prev => {
+            const updated = profile ? { id: session.user.id, email: session.user.email, ...profile } : { id: session.user.id, email: session.user.email }
+            return updated
+          })
         }
       } catch {}
       setLoading(false)
@@ -72,35 +81,30 @@ export function AuthProvider({ children }) {
   }
 
   const register = async (name, email, password, phone) => {
-    const result = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { name, phone } },
-    })
-    if (result.error) {
-      if (result.error.message.includes('already')) return false
-      throw new Error(result.error.message)
+    try {
+      const result = await apiPost('/register', { name, email, password, phone })
+      return { ok: true, user: result.user }
+    } catch (e) {
+      return { ok: false, error: e.message }
     }
-    if (result.data.user) {
-      try {
-        await supabase.from('profiles').insert({
-          id: result.data.user.id,
-          name,
-          role: 'borrower',
-          phone: phone || '',
-          is_active: true,
-        })
-      } catch {
-        throw new Error('Account created but profile setup failed. Contact support.')
-      }
-      return true
-    }
-    return false
   }
 
   const logout = async () => {
+    try { await fetch('/api/notifications/read-all', { method: 'PUT', headers: { Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}` } }) } catch {}
     await supabase.auth.signOut()
     setUser(null)
+  }
+
+  const resetPassword = async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname,
+    })
+    if (error) throw new Error(error.message)
+  }
+
+  const updatePassword = async (newPassword) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) throw new Error(error.message)
   }
 
   const changePassword = async (currentPassword, newPassword) => {
@@ -125,7 +129,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, changePassword, refreshUser, updateProfile, loading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, resetPassword, updatePassword, changePassword, refreshUser, updateProfile, loading }}>
       {children}
     </AuthContext.Provider>
   )

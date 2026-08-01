@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useLoan } from '../contexts/LoanContext'
+import { apiGet } from '../lib/api'
 
 export default function BorrowerDashboard() {
   const { user } = useAuth()
@@ -10,6 +11,7 @@ export default function BorrowerDashboard() {
   const [stats, setStats] = useState(null)
   const [recentLoans, setRecentLoans] = useState([])
   const [loading, setLoading] = useState(true)
+  const [paymentMethods, setPaymentMethods] = useState([])
 
   useEffect(() => {
     if (!user) return
@@ -18,12 +20,14 @@ export default function BorrowerDashboard() {
 
   async function loadData() {
     try {
-      const [loansData, statsData] = await Promise.all([
+      const [loansData, statsData, pmData] = await Promise.all([
         getLoans({ borrowerId: user.id }),
         getBorrowerStats(user.id),
+        apiGet('/payment-methods'),
       ])
       setRecentLoans(loansData.slice(0, 5))
       setStats(statsData)
+      setPaymentMethods(pmData)
     } catch {}
     setLoading(false)
   }
@@ -39,6 +43,13 @@ export default function BorrowerDashboard() {
           <p style={{ fontSize: '0.9rem', opacity: 0.85 }}>Manage your loans and applications</p>
         </div>
       </div>
+
+      {user.kyc_status !== 'approved' && (
+        <div style={{ background: user.kyc_status === 'pending' ? '#fff3e0' : '#fce4ec', border: `1px solid ${user.kyc_status === 'pending' ? '#ff9800' : '#f44336'}`, borderRadius: 8, padding: '12px 16px', margin: '12px 0', fontSize: '0.85rem' }}>
+          {user.kyc_status === 'pending' ? '⏳ Your KYC is pending admin approval' : user.kyc_status === 'rejected' ? '❌ Your KYC was rejected. Please update and resubmit.' : '⚠️ Please complete your KYC profile'}{' '}
+          <Link to="/kyc" style={{ color: 'var(--primary)', fontWeight: 700 }}>Go to KYC →</Link>
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: 12, margin: '18px 0' }}>
         <Link to="/apply-loan" className="btn btn-primary" style={{ flex: 1, textAlign: 'center', textDecoration: 'none' }}>Apply for Loan</Link>
@@ -72,6 +83,33 @@ export default function BorrowerDashboard() {
             <span className="stat-label">Pending</span>
           </div>
         </div>
+      )}
+
+      {paymentMethods.length > 0 && (
+        <section style={{ marginTop: 24 }}>
+          <div className="section-header">
+            <h2>Payment Methods</h2>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {paymentMethods.map(pm => (
+              <div key={pm.id} className="checkout-section" style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                {pm.qr_image && (
+                  <div style={{ flexShrink: 0 }}>
+                    <img src={pm.qr_image} alt="QR Code" style={{ width: 120, height: 120, borderRadius: 8, border: '1px solid var(--border)' }} />
+                    <a href={pm.qr_image} download={`payment-qr-${pm.name || pm.type}.png`} style={{ display: 'block', textAlign: 'center', fontSize: '0.75rem', color: 'var(--primary)', marginTop: 4, fontWeight: 600 }}>
+                      ⬇ Download QR
+                    </a>
+                  </div>
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: 4 }}>{pm.name || pm.type}</div>
+                  {pm.account_holder && <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Holder: {pm.account_holder}</div>}
+                  {pm.account_number && <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Number: {pm.account_number}</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
 
       <section style={{ marginTop: 24 }}>

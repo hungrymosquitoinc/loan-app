@@ -7,11 +7,12 @@ function maskName(name) {
 }
 
 export default function AdminBorrowers() {
-  const { getBorrowers } = useLoan()
+  const { getBorrowers, deleteBorrower } = useLoan()
   const [borrowers, setBorrowers] = useState([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('approved')
   const [selected, setSelected] = useState(null)
+  const [deleteConfirm, setDeleteConfirm] = useState(null)
 
   useEffect(() => { loadBorrowers() }, [])
 
@@ -96,6 +97,12 @@ export default function AdminBorrowers() {
                 <div className="checkout-item"><span>Account No.</span><span>{selected.account_number || selected.bank_account || '—'}</span></div>
               </div>
             </div>
+            {selected.active_loans === 0 && (
+              <button className="btn btn-danger btn-block" style={{ marginBottom: 12 }}
+                onClick={() => setDeleteConfirm(selected)}>
+                Delete Borrower
+              </button>
+            )}
             <div className="checkout-section" style={{ padding: 12 }}>
               <h2>Loan Summary</h2>
               <div className="checkout-items">
@@ -103,6 +110,29 @@ export default function AdminBorrowers() {
                 <div className="checkout-item"><span>Active Loans</span><span>{selected.active_loans || 0}</span></div>
                 <div className="checkout-item"><span>Total Borrowed</span><span>₱{(selected.total_borrowed || 0).toLocaleString()}</span></div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirm && (
+        <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 400, textAlign: 'center' }}>
+            <div className="modal-header"><h3>Delete Borrower</h3><button className="modal-close" onClick={() => setDeleteConfirm(null)}>×</button></div>
+            <p style={{ margin: '16px 0' }}>Are you sure you want to delete <strong>{deleteConfirm.name}</strong>? This action cannot be undone.</p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn" style={{ flex: 1 }} onClick={() => setDeleteConfirm(null)}>Cancel</button>
+              <button className="btn btn-danger" style={{ flex: 1 }} onClick={async () => {
+                try {
+                  await deleteBorrower(deleteConfirm.id)
+                  setDeleteConfirm(null)
+                  setSelected(null)
+                  loadBorrowers()
+                } catch (e) {
+                  alert(e.message || 'Failed to delete borrower')
+                  setDeleteConfirm(null)
+                }
+              }}>Delete</button>
             </div>
           </div>
         </div>
