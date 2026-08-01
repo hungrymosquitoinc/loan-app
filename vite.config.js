@@ -1,8 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { obfuscateBundle } from './vite-obfuscator.mjs'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), obfuscateBundle()],
   base: './',
   server: {
     port: 5173,

@@ -8,6 +8,8 @@ android/.gradle/
 android/build/
 android/app/build/
 android/local.properties
+android/app/keystore.properties
+android/app/*.keystore
 *.log
 .DS_Store
 *.apk
