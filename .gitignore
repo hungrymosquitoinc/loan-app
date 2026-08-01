@@ -13,3 +13,4 @@ android/app/*.keystore
 *.log
 .DS_Store
 *.apk
+*.zip
