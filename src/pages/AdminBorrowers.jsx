@@ -10,7 +10,7 @@ export default function AdminBorrowers() {
   const { getBorrowers, deleteBorrower } = useLoan()
   const [borrowers, setBorrowers] = useState([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState('approved')
+  const [tab, setTab] = useState('all')
   const [selected, setSelected] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
 
@@ -39,6 +39,7 @@ export default function AdminBorrowers() {
   })
 
   const tabs = [
+    { key: 'all', label: `All (${borrowers.length})` },
     { key: 'approved', label: `Approved (${borrowers.filter(b => kycStatus(b) === 'approved').length})` },
     { key: 'not_submitted', label: `Not Submitted (${borrowers.filter(b => kycStatus(b) === 'not_submitted').length})` },
     { key: 'pending', label: `Pending (${borrowers.filter(b => kycStatus(b) === 'pending').length})` },

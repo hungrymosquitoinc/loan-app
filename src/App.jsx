@@ -1,5 +1,5 @@
-import { HashRouter, Routes, Route } from 'react-router-dom'
-import { AuthProvider } from './contexts/AuthContext'
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { LoanProvider } from './contexts/LoanContext'
 import { NotificationProvider } from './contexts/NotificationContext'
 import Navbar from './components/Navbar'
@@ -23,6 +23,13 @@ import AdminBorrowers from './pages/AdminBorrowers'
 import AdminKYC from './pages/AdminKYC'
 import AdminProfile from './pages/AdminProfile'
 import NotFound from './pages/NotFound'
+
+function Home() {
+  const { user, loading } = useAuth()
+  if (loading) return <div className="page-loading">Loading...</div>
+  if (!user) return <Navigate to="/login" replace />
+  return user.role === 'admin' ? <Navigate to="/admin" replace /> : <BorrowerDashboard />
+}
 
 const rawHash = window.location.hash.replace(/^#\/?/, '')
 const hasTokens = rawHash.includes('access_token=')
@@ -58,7 +65,7 @@ export default function App() {
                   <Route path="/register" element={<Register />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/" element={<ProtectedRoute><BorrowerDashboard /></ProtectedRoute>} />
+                  <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
                   <Route path="/apply-loan" element={<ProtectedRoute allowedRoles={['borrower']}><ApplyLoan /></ProtectedRoute>} />
                   <Route path="/my-loans" element={<ProtectedRoute><MyLoans /></ProtectedRoute>} />
                   <Route path="/my-loans/:id" element={<ProtectedRoute><LoanDetail /></ProtectedRoute>} />

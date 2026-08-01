@@ -121,16 +121,16 @@ export default function AdminLoans() {
               <div className="checkout-item"><span>Amount</span><span>₱{selected.amount?.toLocaleString()}</span></div>
               <div className="checkout-item"><span>Frequency</span><span>{selected.frequency || selected.interest_type || '—'}</span></div>
               <div className="checkout-item"><span>Purpose</span><span>{selected.purpose || '—'}</span></div>
-              <div className="checkout-item"><span>Status</span><span style={{ fontWeight: 700, textTransform: 'capitalize' }}>{selected.status}</span></div>
+              <div className="checkout-item"><span>Status</span><span className={`order-status status-${selected.status === 'approved' ? 'ready' : selected.status === 'paid' ? 'delivered' : selected.status === 'rejected' ? 'cancelled' : 'pending'}`}>{selected.status}</span></div>
               {(selected.status === 'approved' || selected.status === 'paid') && (
                 <>
                   <div className="checkout-item"><span>Term</span><span>{selected.days} days</span></div>
                   <div className="checkout-item"><span>Interest</span><span>{selected.interest_rate}% {selected.frequency}</span></div>
                   <div className="checkout-item"><span>Payments</span><span>{selected.num_payments}</span></div>
-                  <div className="checkout-item"><span>EMI</span><span>₱{selected.emi?.toLocaleString() || '—'}</span></div>
-                  <div className="checkout-item"><span>Total Payable</span><span>₱{selected.total_payable?.toLocaleString()}</span></div>
-                  <div className="checkout-item"><span>Paid</span><span>₱{(selected.paid_amount || 0).toLocaleString()}</span></div>
-                  <div className="checkout-item"><span>Remaining</span><span>₱{Math.max(0, (selected.total_payable || 0) - (selected.paid_amount || 0)).toLocaleString()}</span></div>
+                  <div className="checkout-item"><span>EMI</span><span style={{ color: 'var(--primary)', fontWeight: 700 }}>₱{selected.emi?.toLocaleString() || '—'}</span></div>
+                  <div className="checkout-item"><span>Total Payable</span><span style={{ color: 'var(--primary)', fontWeight: 700 }}>₱{selected.total_payable?.toLocaleString()}</span></div>
+                  <div className="checkout-item"><span>Paid</span><span style={{ color: '#4caf50', fontWeight: 700 }}>₱{(selected.paid_amount || 0).toLocaleString()}</span></div>
+                  <div className="checkout-item"><span>Remaining</span><span style={{ color: '#f44336', fontWeight: 700 }}>₱{Math.max(0, (selected.total_payable || 0) - (selected.paid_amount || 0)).toLocaleString()}</span></div>
                 </>
               )}
             </div>
@@ -141,12 +141,12 @@ export default function AdminLoans() {
                 {selected.payments.map((p, i) => (
                   <div key={p.id || i} className="animate-slide-in" style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border)', fontSize: '0.85rem', animationDelay: `${i * 0.03}s` }}>
                     <span>{new Date(p.date).toLocaleDateString()}</span>
-                    <span style={{ fontWeight: 600 }}>₱{(p.amount || 0).toLocaleString()}</span>
+                    <span style={{ fontWeight: 600, color: '#4caf50' }}>₱{(p.amount || 0).toLocaleString()}</span>
                   </div>
                 ))}
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontWeight: 700, fontSize: '0.9rem' }}>
                   <span>Total Paid</span>
-                  <span>₱{(selected.paid_amount || 0).toLocaleString()}</span>
+                  <span style={{ color: '#4caf50' }}>₱{(selected.paid_amount || 0).toLocaleString()}</span>
                 </div>
               </div>
             )}

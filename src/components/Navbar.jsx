@@ -23,7 +23,7 @@ export default function Navbar() {
     return (
       <nav className="navbar" style={{ background: '#0d47a1' }}>
         <Link to="/" className="nav-brand" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <img src="/logo.png" alt="JSR" style={{ height: 65, width: 'auto' }} />
+        <img src="/logo.png" alt="JSR" style={{ height: 45, width: 'auto' }} />
           JSR Lending Inc
         </Link>
         <div className="nav-links">
@@ -37,7 +37,7 @@ export default function Navbar() {
   return (
     <nav className="navbar" style={{ background: user.role === 'admin' ? '#1a237e' : '#1565c0' }}>
       <Link to={user.role === 'admin' ? '/admin' : '/'} className="nav-brand" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <img src="/logo.png" alt="JSR" style={{ height: 65, width: 'auto' }} />
+        <img src="/logo.png" alt="JSR" style={{ height: 45, width: 'auto' }} />
         JSR Lending Inc
       </Link>
       <div className="nav-links">

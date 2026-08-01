@@ -26,7 +26,7 @@ export default function Login() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <img src="/logo.png" alt="JSR Lending Inc" style={{ width: 220, height: 116, borderRadius: 0, margin: '0 auto 16px', display: 'block' }} />
+        <img src="/logo.png" alt="JSR Lending Inc" style={{ width: 220, height: 116, borderRadius: 0, objectFit: 'cover', margin: '0 auto 16px', display: 'block' }} />
         <h1>Welcome Back</h1>
         <p className="auth-subtitle">Sign in to your JSR Lending Inc account</p>
         {error && <div className="alert alert-error">{error}</div>}

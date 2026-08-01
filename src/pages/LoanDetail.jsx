@@ -127,7 +127,7 @@ export default function LoanDetail() {
             {loan.payments.map(p => (
               <div key={p.id} className="checkout-item">
                 <span>{new Date(p.date).toLocaleDateString()}</span>
-                <span>₱{p.amount?.toLocaleString()} {p.note && <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>({p.note})</span>}</span>
+                <span style={{ color: '#4caf50', fontWeight: 600 }}>₱{p.amount?.toLocaleString()} {p.note && <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>({p.note})</span>}</span>
               </div>
             ))}
           </div>

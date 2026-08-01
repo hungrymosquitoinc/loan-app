@@ -44,7 +44,7 @@ export default function BorrowerDashboard() {
         </div>
       </div>
 
-      {user.kyc_status !== 'approved' && (
+      {user.role !== 'admin' && user.kyc_status !== 'approved' && (
         <div style={{ background: user.kyc_status === 'pending' ? '#fff3e0' : '#fce4ec', border: `1px solid ${user.kyc_status === 'pending' ? '#ff9800' : '#f44336'}`, borderRadius: 8, padding: '12px 16px', margin: '12px 0', fontSize: '0.85rem' }}>
           {user.kyc_status === 'pending' ? '⏳ Your KYC is pending admin approval' : user.kyc_status === 'rejected' ? '❌ Your KYC was rejected. Please update and resubmit.' : '⚠️ Please complete your KYC profile'}{' '}
           <Link to="/kyc" style={{ color: 'var(--primary)', fontWeight: 700 }}>Go to KYC →</Link>
