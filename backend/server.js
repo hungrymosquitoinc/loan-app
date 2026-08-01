@@ -1064,7 +1064,25 @@ app.put('/api/borrowers/:id/kyc', kycBodyLimit, authenticate, requireSameUserOrA
 
 // === Notifications ===
 
+const READ_NOTIFICATION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+async function purgeOldReadNotifications() {
+  try {
+    const cutoff = new Date(Date.now() - READ_NOTIFICATION_TTL_MS).toISOString();
+    const r = await axios.delete(
+      `${supabaseConfig.supabaseUrl}/rest/v1/notifications?is_read=eq.true&created_at=lt.${cutoff}`,
+      { headers: sbHeaders(), timeout: 5000 }
+    );
+    logSafe('Notification purge', `Removed ${r.data?.length ?? 0} old read notifications`);
+    return r.data?.length ?? 0;
+  } catch (e) {
+    logSafe('Notification purge', e.message);
+    return 0;
+  }
+}
+
 app.get('/api/notifications', authenticate, requireAdmin, requireSupabase, async (req, res) => {
+  purgeOldReadNotifications();
   try {
     const limit = Math.min(parseInt(req.query.limit) || 50, 100);
     const r = await axios.get(
@@ -1123,3 +1141,8 @@ app.listen(PORT, bindHost, () => {
   console.log(`Environment: ${IS_PRODUCTION ? 'production' : 'development'}`);
   console.log(`CORS origins: ${ALLOWED_ORIGINS.join(', ')}`);
 });
+
+// Periodically purge read notifications older than 24 hours.
+const PURGE_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
+setInterval(purgeOldReadNotifications, PURGE_INTERVAL_MS);
+setTimeout(purgeOldReadNotifications, 30 * 1000); // shortly after boot
