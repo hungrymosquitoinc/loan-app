@@ -4,7 +4,7 @@ import { obfuscateBundle } from './vite-obfuscator.mjs'
 
 export default defineConfig({
   plugins: [react(), obfuscateBundle()],
-  base: './',
+  base: '/',
   server: {
     port: 5173,
     proxy: {

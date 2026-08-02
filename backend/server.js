@@ -1138,8 +1138,12 @@ app.put('/api/notifications/read-all', authenticate, requireAdmin, requireSupaba
 
 // --- Auth confirm page (bridges email confirmation to app deep link) ---
 const confirmPagePath = path.join(__dirname, 'public', 'auth', 'confirm.html');
+const confirmScriptPath = path.join(__dirname, 'public', 'auth', 'confirm.js');
 if (fs.existsSync(confirmPagePath)) {
   app.get('/auth/confirm', (_req, res) => res.sendFile(confirmPagePath));
+}
+if (fs.existsSync(confirmScriptPath)) {
+  app.get('/auth/confirm.js', (_req, res) => res.sendFile(confirmScriptPath));
 }
 
 // --- Serve the built web app (hosted UI mode) ---
