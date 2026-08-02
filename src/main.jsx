@@ -16,18 +16,12 @@ if (Capacitor.isNativePlatform()) {
           accessToken = params.get('access_token')
           refreshToken = params.get('refresh_token')
         }
-        if (!accessToken) {
-          const stored = localStorage.getItem('pending_auth_tokens')
-          if (stored) {
-            const tokens = JSON.parse(stored)
-            accessToken = tokens.access_token
-            refreshToken = tokens.refresh_token
-            localStorage.removeItem('pending_auth_tokens')
-          }
-        }
         if (accessToken && refreshToken) {
-          await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
-          window.location.hash = ''
+          try {
+            await supabase.auth.getUser(accessToken)
+          } catch {}
+          await supabase.auth.signOut().catch(() => {})
+          window.location.hash = '#/login'
         }
       }
     })
