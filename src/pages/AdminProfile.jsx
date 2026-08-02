@@ -68,9 +68,9 @@ export default function AdminProfile() {
           <div className="checkout-items">
             <div className="checkout-item"><span>Name</span><span>{user?.name || '—'}</span></div>
             <div className="checkout-item"><span>Email</span><span>{user?.email || '—'}</span></div>
+            <div className="checkout-item"><span>Phone</span><span>{user?.phone || '—'}</span></div>
             <div className="checkout-item"><span>Joined</span><span>{joined}</span></div>
           </div>
-          <div className="form-group"><label>Phone</label><input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} /></div>
           <button type="submit" className="btn btn-primary btn-block" disabled={saving}>{saving ? 'Saving...' : 'Update'}</button>
         </div>
       </form>
