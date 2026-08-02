@@ -8,43 +8,12 @@ const axios = require('axios');
 const { z } = require('zod');
 const crypto = require('crypto');
 
-// --- Input Sanitization ---
+// --- Helpers ---
 
 function isImageDataUrl(str) {
   return typeof str === 'string'
     && str.length > 100
     && /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/.test(str);
-}
-
-function sanitizeString(str) {
-  if (typeof str !== 'string') return str;
-  if (isImageDataUrl(str)) return str;
-  return str
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
-    .replace(/\//g, '&#x2F;');
-}
-
-function sanitizeObject(obj) {
-  if (!obj || typeof obj !== 'object') return obj;
-  const result = {};
-  for (const [key, value] of Object.entries(obj)) {
-    if (typeof value === 'string') {
-      result[key] = sanitizeString(value);
-    } else {
-      result[key] = value;
-    }
-  }
-  return result;
-}
-
-function sanitizeMiddleware(req, res, next) {
-  if (req.body && typeof req.body === 'object') {
-    req.body = sanitizeObject(req.body);
-  }
-  next();
 }
 
 // --- Supabase Config ---
@@ -175,8 +144,12 @@ app.use(cors({
   credentials: true,
 }));
 
-app.use(express.json({ limit: '1mb' }));
-app.use(sanitizeMiddleware);
+app.use((req, res, next) => {
+  if (req.method === 'PUT' && /^\/api\/borrowers\/[^/]+\/kyc$/.test(req.path)) {
+    return express.json({ limit: '50mb' })(req, res, next);
+  }
+  return express.json({ limit: '1mb' })(req, res, next);
+});
 
 // --- Rate Limiting ---
 
@@ -1004,9 +977,7 @@ app.delete('/api/admin/payment-methods/:id', authenticate, requireAdmin, require
 
 // === Borrower KYC ===
 
-const kycBodyLimit = express.json({ limit: '50mb' });
-
-app.put('/api/borrowers/:id/kyc', kycBodyLimit, authenticate, requireSameUserOrAdmin, requireSupabase, validateRequest(kycSchema), async (req, res) => {
+app.put('/api/borrowers/:id/kyc', authenticate, requireSameUserOrAdmin, requireSupabase, validateRequest(kycSchema), async (req, res) => {
   const data = pick(req.body, ALLOWED_KYC_FIELDS);
   const isAdminAction = req.body.kyc_status !== undefined && req.user.role === 'admin';
   if (req.body.kyc_status !== undefined && !isAdminAction) {

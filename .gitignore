@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .env
+.env.production
 backend/supabase-config.json
 backend/.env
 backend/*.local
