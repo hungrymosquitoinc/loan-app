@@ -45,9 +45,12 @@ try {
 const app = express();
 const PORT = process.env.PORT || 3001;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
-const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+let RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL || '';
+try { RENDER_EXTERNAL_URL = new URL(RENDER_EXTERNAL_URL).origin; } catch {}
+const envOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
   : ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000', 'https://localhost', 'capacitor://localhost'];
+const ALLOWED_ORIGINS = [...new Set([...envOrigins, RENDER_EXTERNAL_URL].filter(Boolean))];
 
 // --- Safe Logging ---
 
