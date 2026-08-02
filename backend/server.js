@@ -765,7 +765,15 @@ app.post('/api/register', authLimiter, requireSupabase, validateRequest(register
     }
     userId = signupRes.data?.id;
     if (!userId) throw new Error('No user ID returned from signup');
+  } catch (e) {
+    if (e.response?.status === 429) {
+      return res.status(429).json({ error: 'Too many confirmation emails sent recently. Please try again in about an hour.' });
+    }
+    logSafe('Registration', e.message);
+    return res.status(500).json({ error: 'Registration failed. Contact support.' });
+  }
 
+  try {
     await axios.post(
       `${supabaseConfig.supabaseUrl}/rest/v1/profiles`,
       {
@@ -789,6 +797,11 @@ app.post('/api/register', authLimiter, requireSupabase, validateRequest(register
       { headers: { ...sbHeaders(), Prefer: 'return=representation,resolution=merge-duplicates' }, timeout: 5000 }
     );
   } catch (e) {
+    // Roll back the just-created auth user so we never leave an invisible
+    // orphaned account that the admin panel cannot list or remove.
+    try {
+      await axios.delete(`${supabaseConfig.supabaseUrl}/auth/v1/admin/users/${userId}`, { headers: sbHeaders(), timeout: 5000 });
+    } catch {}
     if (e.response?.status === 409) {
       const msg = e.response?.data?.message || '';
       if (msg.includes('profiles_name_unique') || msg.includes('name'))
