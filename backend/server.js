@@ -725,13 +725,15 @@ app.post('/api/register', authLimiter, requireSupabase, validateRequest(register
   let userId;
   try {
     const signupKey = supabaseConfig.publishableKey || supabaseConfig.anonKey;
+    const confirmUrl = 'https://loan-api-bz0y.onrender.com/auth/confirm';
     const signupRes = await axios.post(
-      `${supabaseConfig.supabaseUrl}/auth/v1/signup`,
+      `${supabaseConfig.supabaseUrl}/auth/v1/signup?redirect_to=${encodeURIComponent(confirmUrl)}`,
       {
         email,
         password,
         data: { name, phone, email_verified: false, phone_verified: false },
-        email_redirect_to: `${req.protocol}://${req.get('host')}/auth/confirm`,
+        options: { emailRedirectTo: confirmUrl },
+        email_redirect_to: confirmUrl,
       },
       { headers: { apikey: signupKey, 'Content-Type': 'application/json' }, timeout: 10000 }
     );

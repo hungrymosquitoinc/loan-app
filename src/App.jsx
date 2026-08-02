@@ -57,10 +57,10 @@ function AppShell() {
             <PageTransition>
             <Routes>
               {isRecoveryUrl && <Route path="*" element={<ResetPassword rawHash={rawHash} />} />}
-              {isConfirmUrl && <Route path="*" element={<ConfirmEmail />} />}
+              {isConfirmUrl && <Route path="*" element={<ConfirmEmail rawHash={rawHash} />} />}
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="*" element={isConfirmUrl ? <ConfirmEmail /> : <ResetPassword rawHash={rawHash} />} />
+              <Route path="*" element={isConfirmUrl ? <ConfirmEmail rawHash={rawHash} /> : <ResetPassword rawHash={rawHash} />} />
             </Routes>
             </PageTransition>
           ) : (
