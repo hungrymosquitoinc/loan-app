@@ -32,17 +32,12 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    const isSignupConfirmation = typeof window !== 'undefined' && window.location.hash.includes('type=signup')
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       try {
         if (session?.user) {
-          if (isSignupConfirmation) {
-            await supabase.auth.signOut()
-          } else {
-            const profile = await fetchProfile(session.user.id)
-            if (profile) setUser({ id: session.user.id, email: session.user.email, ...profile })
-            else setUser({ id: session.user.id, email: session.user.email })
-          }
+          const profile = await fetchProfile(session.user.id)
+          if (profile) setUser({ id: session.user.id, email: session.user.email, ...profile })
+          else setUser({ id: session.user.id, email: session.user.email })
         }
       } catch {}
       setLoading(false)
@@ -55,10 +50,6 @@ export function AuthProvider({ children }) {
         } else if (event === 'TOKEN_REFRESHED') {
           return
         } else if (session?.user) {
-          if (isSignupConfirmation) {
-            await supabase.auth.signOut()
-            return
-          }
           const profile = await fetchProfile(session.user.id)
           setUser(prev => {
             const updated = profile ? { id: session.user.id, email: session.user.email, ...profile } : { id: session.user.id, email: session.user.email }
