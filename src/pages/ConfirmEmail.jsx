@@ -1,6 +1,14 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
 
 export default function ConfirmEmail() {
+  const navigate = useNavigate()
+
+  const handleSignIn = async () => {
+    await supabase.auth.signOut().catch(() => {})
+    navigate('/login')
+  }
+
   return (
     <div className="auth-page">
       <div className="auth-card" style={{ textAlign: 'center' }}>
@@ -11,7 +19,7 @@ export default function ConfirmEmail() {
           Your email has been verified successfully.<br />
           You can now sign in to your account.
         </p>
-        <Link to="/login" className="btn btn-primary btn-block">Sign In</Link>
+        <button onClick={handleSignIn} className="btn btn-primary btn-block">Sign In</button>
       </div>
     </div>
   )

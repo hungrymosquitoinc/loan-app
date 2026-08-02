@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { LoanProvider } from './contexts/LoanContext'
 import { NotificationProvider } from './contexts/NotificationContext'
@@ -31,18 +31,26 @@ function Home() {
   return user.role === 'admin' ? <Navigate to="/admin" replace /> : <BorrowerDashboard />
 }
 
-const rawHash = window.location.hash.replace(/^#\/?/, '')
-const hasTokens = rawHash.includes('access_token=')
-const isRecoveryUrl = hasTokens && rawHash.includes('type=recovery')
-const isConfirmUrl = hasTokens && rawHash.includes('type=signup')
-const isResetPage = rawHash.startsWith('reset-password')
-const isForgotPage = rawHash.startsWith('forgot-password')
-const showCleanAuthPage = isRecoveryUrl || isConfirmUrl || isResetPage || isForgotPage
+function parseAuthHash() {
+  const rawHash = window.location.hash.replace(/^#\/?/, '')
+  const hasTokens = rawHash.includes('access_token=')
+  const isRecoveryUrl = hasTokens && rawHash.includes('type=recovery')
+  const isConfirmUrl = hasTokens && rawHash.includes('type=signup')
+  const isResetPage = rawHash.startsWith('reset-password')
+  const isForgotPage = rawHash.startsWith('forgot-password')
+  return {
+    rawHash,
+    isRecoveryUrl,
+    isConfirmUrl,
+    showCleanAuthPage: isRecoveryUrl || isConfirmUrl || isResetPage || isForgotPage,
+  }
+}
 
-export default function App() {
+function AppShell() {
+  useLocation()
+  const { rawHash, isRecoveryUrl, isConfirmUrl, showCleanAuthPage } = parseAuthHash()
   return (
-    <HashRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
-      <AuthProvider>
+    <AuthProvider>
         <LoanProvider>
           <NotificationProvider>
             {showCleanAuthPage ? (
@@ -89,6 +97,13 @@ export default function App() {
           </NotificationProvider>
         </LoanProvider>
       </AuthProvider>
+  )
+}
+
+export default function App() {
+  return (
+    <HashRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+      <AppShell />
     </HashRouter>
   )
 }
