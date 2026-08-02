@@ -731,6 +731,7 @@ app.post('/api/register', authLimiter, requireSupabase, validateRequest(register
         email,
         password,
         data: { name, phone, email_verified: false, phone_verified: false },
+        email_redirect_to: `${req.protocol}://${req.get('host')}/auth/confirm`,
       },
       { headers: { apikey: signupKey, 'Content-Type': 'application/json' }, timeout: 10000 }
     );
@@ -1132,6 +1133,12 @@ app.put('/api/notifications/read-all', authenticate, requireAdmin, requireSupaba
     res.status(500).json({ error: 'Failed to mark all as read' });
   }
 });
+
+// --- Auth confirm page (bridges email confirmation to app deep link) ---
+const confirmPagePath = path.join(__dirname, 'public', 'auth', 'confirm.html');
+if (fs.existsSync(confirmPagePath)) {
+  app.get('/auth/confirm', (_req, res) => res.sendFile(confirmPagePath));
+}
 
 // --- Serve the built web app (hosted UI mode) ---
 
