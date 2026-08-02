@@ -4,12 +4,13 @@ import { apiPut, apiGet } from '../lib/api'
 
 export default function AdminProfile() {
   const { user, updateProfile } = useAuth()
-  const [form, setForm] = useState({ name: user?.name || '', phone: user?.phone || '' })
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
   const [paymentMethods, setPaymentMethods] = useState([])
   const [showPmForm, setShowPmForm] = useState(false)
   const [pmForm, setPmForm] = useState({ type: 'gcash', name: '', account_holder: '', account_number: '', qr_image: '' })
+  const [editingPhone, setEditingPhone] = useState(false)
+  const [phoneInput, setPhoneInput] = useState(user?.phone || '')
 
   useEffect(() => {
     loadPaymentMethods()
@@ -17,18 +18,6 @@ export default function AdminProfile() {
 
   async function loadPaymentMethods() {
     try { const d = await apiGet('/admin/payment-methods'); setPaymentMethods(d) } catch {}
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault()
-    setMsg('')
-    setSaving(true)
-    try {
-      await apiPut('/admin/profile', { id: user.id, ...form })
-      updateProfile(form)
-      setMsg('Profile updated')
-    } catch (e) { setMsg(e.message || 'Failed') }
-    setSaving(false)
   }
 
   function handlePmImage(field, file) {
@@ -57,23 +46,50 @@ export default function AdminProfile() {
 
   const joined = user?.created_at ? new Date(user.created_at).toLocaleDateString() : '—'
 
+  async function savePhone() {
+    setSaving(true)
+    setMsg('')
+    try {
+      await apiPut('/profile', { id: user.id, name: user.name, phone: phoneInput })
+      updateProfile({ phone: phoneInput })
+      setEditingPhone(false)
+      setMsg('Phone updated')
+    } catch (e) {
+      setMsg(e.message || 'Failed')
+    }
+    setSaving(false)
+  }
+
   return (
     <div className="admin-page">
       <h1>Profile</h1>
       {msg && <div className={`alert ${msg.includes('Error') || msg.includes('Failed') ? 'alert-error' : ''}`} style={{ background: msg.includes('Error') || msg.includes('Failed') ? '#ffebee' : '#e8f5e9', color: msg.includes('Error') || msg.includes('Failed') ? 'var(--danger)' : '#2e7d32' }}>{msg}</div>}
 
-      <form onSubmit={handleSubmit}>
-        <div className="checkout-section">
+      <div className="checkout-section">
           <h2>Personal Info</h2>
           <div className="checkout-items">
             <div className="checkout-item"><span>Name</span><span>{user?.name || '—'}</span></div>
             <div className="checkout-item"><span>Email</span><span>{user?.email || '—'}</span></div>
-            <div className="checkout-item"><span>Phone</span><span>{user?.phone || '—'}</span></div>
+            <div className="checkout-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>Phone</span>
+              <span style={{ flex: 1, textAlign: 'right', minWidth: 0 }}>
+                {editingPhone ? (
+                  <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                    <input type="tel" value={phoneInput} onChange={e => setPhoneInput(e.target.value)} style={{ width: '180px', padding: '4px 8px' }} />
+                    <button className="btn btn-primary btn-sm" onClick={savePhone} disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
+                    <button className="btn btn-sm" onClick={() => setEditingPhone(false)}>Cancel</button>
+                  </div>
+                ) : (
+                  <>
+                    <span style={{ marginRight: 12 }}>{user?.phone || '—'}</span>
+                    <button className="btn btn-sm" onClick={() => { setPhoneInput(user?.phone || ''); setEditingPhone(true); }}>Edit</button>
+                  </>
+                )}
+              </span>
+            </div>
             <div className="checkout-item"><span>Joined</span><span>{joined}</span></div>
           </div>
-          <button type="submit" className="btn btn-primary btn-block" disabled={saving}>{saving ? 'Saving...' : 'Update'}</button>
         </div>
-      </form>
 
       <div className="checkout-section">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
