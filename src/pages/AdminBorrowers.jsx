@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLoan } from '../contexts/LoanContext'
+import { QRCodeSVG } from 'qrcode.react'
 
 function maskName(name) {
   if (!name || name.length <= 2) return name || '—'
@@ -73,8 +74,8 @@ export default function AdminBorrowers() {
               </div>
             ) : (
               <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                <div style={{ width: 160, height: 160, margin: '0 auto', background: '#f5f5f5', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed var(--border)' }}>
-                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=Borrower:${selected.id}|${selected.name}`} alt="QR" style={{ width: 160, height: 160, borderRadius: 12 }} />
+                <div style={{ width: 160, height: 160, margin: '0 auto', background: '#fff', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed var(--border)', padding: 8 }}>
+                  <QRCodeSVG value={`Borrower:${selected.id}|${selected.name}`} size={144} />
                 </div>
                 <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: 4 }}>Generated QR</div>
               </div>

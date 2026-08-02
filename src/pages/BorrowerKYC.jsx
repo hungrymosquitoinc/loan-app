@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useLoan } from '../contexts/LoanContext'
+import { QRCodeSVG } from 'qrcode.react'
 
 export default function BorrowerKYC() {
   const { user, updateProfile } = useAuth()
@@ -214,8 +215,8 @@ export default function BorrowerKYC() {
             {form.qr_data ? (
               <img src={form.qr_data} alt="QR" style={{ width: 160, height: 160, borderRadius: 12, objectFit: 'contain' }} />
             ) : (
-            <div style={{ width: 160, height: 160, margin: '0 auto', background: '#f5f5f5', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed var(--border)' }}>
-              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(qrData)}`} alt="QR" style={{ width: 160, height: 160, borderRadius: 12 }} />
+            <div style={{ width: 160, height: 160, margin: '0 auto', background: '#fff', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed var(--border)', padding: 8 }}>
+              <QRCodeSVG value={qrData} size={144} />
             </div>
             )}
           </div>

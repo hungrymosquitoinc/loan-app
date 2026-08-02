@@ -985,6 +985,19 @@ app.put('/api/borrowers/:id/kyc', authenticate, requireSameUserOrAdmin, requireS
   }
   if (data.kyc_status === undefined) data.kyc_status = 'pending';
 
+  // Once approved, KYC details are locked. A borrower must ask an admin to change them.
+  if (req.user.role !== 'admin') {
+    try {
+      const cur = await axios.get(
+        `${supabaseConfig.supabaseUrl}/rest/v1/profiles?id=eq.${encodeURIComponent(req.params.id)}&select=kyc_status`,
+        { headers: sbHeaders(), timeout: 5000 }
+      );
+      if (cur.data?.[0]?.kyc_status === 'approved') {
+        return res.status(400).json({ error: 'Your KYC is already approved. Contact the admin to update your details.' });
+      }
+    } catch {}
+  }
+
   // Pre-check uniqueness for phone, name, id_number, qr_data, id_image
   const uniqueFields = ['phone', 'name', 'id_number', 'qr_data', 'id_image'];
   for (const field of uniqueFields) {
