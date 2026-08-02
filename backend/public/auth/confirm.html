@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JSR Lending - Confirming...</title>
+<title>JSR Lending - Email Confirmed</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -18,80 +18,39 @@
   .logo { width: 64px; height: 64px; border-radius: 16px; margin: 0 auto 20px; }
   h1 { font-size: 20px; margin-bottom: 8px; color: #fff; }
   p { font-size: 14px; color: #8899aa; line-height: 1.6; margin-bottom: 20px; }
-  .spinner {
-    width: 36px; height: 36px; border: 3px solid #1c3050;
-    border-top-color: #2563eb; border-radius: 50%;
-    animation: spin 0.8s linear infinite; margin: 0 auto 20px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
   .btn {
-    display: inline-block; padding: 12px 28px; background: #2563eb;
-    color: #fff; border: none; border-radius: 8px; font-size: 15px;
+    display: inline-block; padding: 14px 32px; background: #2563eb;
+    color: #fff; border: none; border-radius: 8px; font-size: 16px;
     font-weight: 600; cursor: pointer; text-decoration: none;
-    transition: background 0.2s;
   }
   .btn:hover { background: #1d4ed8; }
-  .btn:disabled { opacity: 0.4; cursor: default; }
-  .error { color: #ef4444; font-size: 13px; margin-top: 12px; display: none; }
-  .success { color: #22c55e; font-size: 13px; margin-top: 12px; display: none; }
+  .check { font-size: 56px; margin-bottom: 16px; color: #22c55e; }
 </style>
 </head>
 <body>
 <div class="card">
   <img class="logo" src="/logo.png" alt="JSR Lending">
-  <h1>Confirming Your Email</h1>
-  <div id="spinner" class="spinner"></div>
-  <p id="status-text">Setting up your account...</p>
-  <div id="error" class="error"></div>
-  <div id="success" class="success">Account confirmed! Opening the app...</div>
-  <a id="open-btn" class="btn" style="display:none" href="#">Open JSR Lending</a>
+  <div class="check">&#10003;</div>
+  <h1>Email Confirmed</h1>
+  <p>Your account is ready. Tap the button below to open the app.</p>
+  <a id="open-btn" class="btn" href="#">Open JSR Lending</a>
 </div>
-
 <script>
 (function() {
   var hash = window.location.hash.substring(1);
   var params = new URLSearchParams(hash);
   var accessToken = params.get('access_token');
   var refreshToken = params.get('refresh_token');
-  var errorDesc = params.get('error_description') || params.get('error');
 
-  if (errorDesc) {
-    document.getElementById('spinner').style.display = 'none';
-    document.getElementById('error').style.display = 'block';
-    document.getElementById('error').textContent = decodeURIComponent(errorDesc);
-    document.getElementById('status-text').style.display = 'none';
-    return;
+  if (accessToken && refreshToken) {
+    localStorage.setItem('pending_auth_tokens', JSON.stringify({
+      access_token: accessToken,
+      refresh_token: refreshToken
+    }));
   }
-
-  if (!accessToken || !refreshToken) {
-    document.getElementById('spinner').style.display = 'none';
-    document.getElementById('error').style.display = 'block';
-    document.getElementById('error').textContent = 'Missing authentication tokens. Please try again.';
-    document.getElementById('status-text').style.display = 'none';
-    return;
-  }
-
-  localStorage.setItem('pending_auth_tokens', JSON.stringify({
-    access_token: accessToken,
-    refresh_token: refreshToken
-  }));
 
   var deepLink = 'jsrlending://login#' + hash;
-
-  function tryOpenApp() {
-    window.location.href = deepLink;
-  }
-
-  tryOpenApp();
-
-  setTimeout(function() {
-    document.getElementById('spinner').style.display = 'none';
-    document.getElementById('status-text').textContent = 'If the app did not open, tap the button below.';
-    document.getElementById('success').style.display = 'block';
-    var btn = document.getElementById('open-btn');
-    btn.style.display = 'inline-block';
-    btn.href = deepLink;
-  }, 2500);
+  document.getElementById('open-btn').href = deepLink;
 })();
 </script>
 </body>
