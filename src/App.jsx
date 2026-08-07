@@ -23,6 +23,7 @@ import AdminBorrowers from './pages/AdminBorrowers'
 import AdminKYC from './pages/AdminKYC'
 import AdminProfile from './pages/AdminProfile'
 import NotFound from './pages/NotFound'
+import pkg from '../package.json'
 
 function Home() {
   const { user, loading } = useAuth()
@@ -90,7 +91,7 @@ function AppShell() {
               </main>
               <BottomNav />
               <footer className="app-footer">
-                © {new Date().getFullYear()} JSR Lending Inc &nbsp;|&nbsp; Created by: J.S.Rionda a.k.a r00t©™ &nbsp;|&nbsp; v1.0.2
+                © {new Date().getFullYear()} JSR Lending Inc &nbsp;|&nbsp; Created by: J.S.Rionda a.k.a r00t©™ &nbsp;|&nbsp; v{pkg.version}
               </footer>
             </div>
           )}
