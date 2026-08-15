@@ -32,6 +32,21 @@ export default function BorrowerDashboard() {
     setLoading(false)
   }
 
+  function downloadImage(url, filename) {
+    fetch(url).then(r => r.blob()).then(blob => {
+      const blobUrl = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = blobUrl
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(blobUrl)
+    }).catch(() => {
+      window.open(url, '_blank')
+    })
+  }
+
   if (loading) return <div className="page-loading">Loading...</div>
 
   return (
@@ -100,9 +115,9 @@ export default function BorrowerDashboard() {
                 {pm.qr_image && (
                   <div style={{ flexShrink: 0 }}>
                     <img src={pm.qr_image} alt="QR Code" style={{ width: 120, height: 120, borderRadius: 8, border: '1px solid var(--border)' }} />
-                    <a href={pm.qr_image} download={`payment-qr-${pm.name || pm.type}.png`} style={{ display: 'block', textAlign: 'center', fontSize: '0.75rem', color: 'var(--primary)', marginTop: 4, fontWeight: 600 }}>
+                    <button onClick={() => downloadImage(pm.qr_image, `payment-qr-${pm.name || pm.type}.png`)} style={{ display: 'block', textAlign: 'center', fontSize: '0.75rem', color: 'var(--primary)', marginTop: 4, fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', width: '100%' }}>
                       ⬇ Download QR
-                    </a>
+                    </button>
                   </div>
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>
