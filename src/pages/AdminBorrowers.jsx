@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLoan } from '../contexts/LoanContext'
-import { QRCodeSVG } from 'qrcode.react'
+import { QRCodeCanvas } from 'qrcode.react'
 
 function maskName(name) {
   if (!name || name.length <= 2) return name || '—'
@@ -14,8 +14,28 @@ export default function AdminBorrowers() {
   const [tab, setTab] = useState('all')
   const [selected, setSelected] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
+  const qrCanvasRef = useRef(null)
 
   useEffect(() => { loadBorrowers() }, [])
+
+  function downloadQr(borrower) {
+    let href, name
+    if (borrower.qr_data) {
+      href = borrower.qr_data
+      name = `qr-${(borrower.name || 'borrower').replace(/\s+/g, '-')}.png`
+    } else if (qrCanvasRef.current) {
+      href = qrCanvasRef.current.toDataURL('image/png')
+      name = `qr-${(borrower.name || 'borrower').replace(/\s+/g, '-')}.png`
+    } else {
+      return
+    }
+    const a = document.createElement('a')
+    a.href = href
+    a.download = name
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+  }
 
   async function loadBorrowers() {
     try { const d = await getBorrowers(); setBorrowers(d) } catch {}
@@ -75,11 +95,14 @@ export default function AdminBorrowers() {
             ) : (
               <div style={{ textAlign: 'center', marginBottom: 20 }}>
                 <div style={{ width: 160, height: 160, margin: '0 auto', background: '#fff', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed var(--border)', padding: 8 }}>
-                  <QRCodeSVG value={`Borrower:${selected.id}|${selected.name}`} size={144} />
+                  <QRCodeCanvas ref={qrCanvasRef} value={`Borrower:${selected.id}|${selected.name}`} size={144} />
                 </div>
                 <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: 4 }}>Generated QR</div>
               </div>
             )}
+            <button className="btn btn-block" style={{ marginBottom: 12 }} onClick={() => downloadQr(selected)}>
+              ⬇ Download QR
+            </button>
             {selected.id_image && <img src={selected.id_image} alt="ID" style={{ width: '100%', maxHeight: 200, objectFit: 'contain', borderRadius: 8, marginBottom: 8 }} />}
             {selected.selfie_image && <img src={selected.selfie_image} alt="Selfie" style={{ width: '100%', maxHeight: 200, objectFit: 'contain', borderRadius: 8, marginBottom: 8 }} />}
             <div className="checkout-section" style={{ padding: 12, marginBottom: 8 }}>

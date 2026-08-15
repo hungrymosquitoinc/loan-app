@@ -78,6 +78,10 @@ export default function BorrowerDashboard() {
             <span className="stat-value">{stats.paid}</span>
             <span className="stat-label">Paid</span>
           </div>
+          <div className="stat-card" style={{ borderTopColor: '#2196f3' }}>
+            <span className="stat-value">{stats.total_payments || 0}</span>
+            <span className="stat-label">Payments Made</span>
+          </div>
           <div className="stat-card" style={{ borderTopColor: '#f44336' }}>
             <span className="stat-value">{stats.pending}</span>
             <span className="stat-label">Pending</span>

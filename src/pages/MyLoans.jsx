@@ -56,7 +56,7 @@ export default function MyLoans() {
               <div className="checkout-item"><span>Interest/Period</span><span>{selected.interest_rate}% {selected.frequency || selected.interest_type}</span></div>
               <div className="checkout-item"><span>Total Payable</span><span style={{ color: 'var(--primary)', fontWeight: 700 }}>₱{selected.total_payable?.toLocaleString()}</span></div>
               <div className="checkout-item"><span>EMI</span><span style={{ color: 'var(--primary)', fontWeight: 700 }}>₱{selected.emi?.toLocaleString() || '—'}</span></div>
-              <div className="checkout-item"><span>Payments</span><span>{selected.num_payments || '—'}</span></div>
+              <div className="checkout-item"><span>Payments Made</span><span>{(selected.payments?.length || 0)} / {selected.num_payments || 0}</span></div>
               <div className="checkout-item"><span>Paid</span><span style={{ color: '#4caf50', fontWeight: 700 }}>₱{(selected.paid_amount || 0).toLocaleString()}</span></div>
               <div className="checkout-item"><span>Remaining</span><span style={{ color: '#f44336', fontWeight: 700 }}>₱{Math.max(0, (selected.total_payable || 0) - (selected.paid_amount || 0)).toLocaleString()}</span></div>
               <div className="checkout-item"><span>Status</span><span className={`order-status status-${selected.status === 'approved' ? 'ready' : selected.status === 'paid' ? 'delivered' : selected.status === 'rejected' ? 'cancelled' : 'pending'}`}>{selected.status}</span></div>
@@ -93,7 +93,7 @@ export default function MyLoans() {
               </div>
               <div className="order-card-footer">
                 <span className="order-total">Payable: ₱{loan.total_payable?.toLocaleString()}</span>
-                <span className="order-date">{loan.num_payments || '—'} payments</span>
+                <span className="order-date">{loan.payments?.length || 0}/{loan.num_payments || 0} payments</span>
               </div>
             </div>
           ))}

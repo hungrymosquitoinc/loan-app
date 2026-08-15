@@ -96,6 +96,7 @@ export default function LoanDetail() {
           <div className="checkout-item"><span>Interest Type</span><span>{loan.interest_type}</span></div>
           <div className="checkout-item"><span>Interest Rate</span><span>{loan.interest_rate}%</span></div>
           <div className="checkout-item"><span>Term</span><span>{loan.days} days</span></div>
+          <div className="checkout-item"><span>Payments Made</span><span>{(loan.payments?.length || 0)} / {loan.num_payments || 0}</span></div>
           <div className="checkout-item"><span>Total Interest</span><span>₱{loan.total_interest?.toLocaleString()}</span></div>
           <div className="checkout-item"><span>Applied</span><span>{new Date(loan.applied_at).toLocaleDateString()}</span></div>
           {loan.approved_at && <div className="checkout-item"><span>Approved</span><span>{new Date(loan.approved_at).toLocaleDateString()}</span></div>}

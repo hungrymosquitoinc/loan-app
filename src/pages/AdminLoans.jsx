@@ -126,7 +126,7 @@ export default function AdminLoans() {
                 <>
                   <div className="checkout-item"><span>Term</span><span>{selected.days} days</span></div>
                   <div className="checkout-item"><span>Interest</span><span>{selected.interest_rate}% {selected.frequency}</span></div>
-                  <div className="checkout-item"><span>Payments</span><span>{selected.num_payments}</span></div>
+                  <div className="checkout-item"><span>Payments Made</span><span>{(selected.payments?.length || 0)} / {selected.num_payments || 0}</span></div>
                   <div className="checkout-item"><span>EMI</span><span style={{ color: 'var(--primary)', fontWeight: 700 }}>₱{selected.emi?.toLocaleString() || '—'}</span></div>
                   <div className="checkout-item"><span>Total Payable</span><span style={{ color: 'var(--primary)', fontWeight: 700 }}>₱{selected.total_payable?.toLocaleString()}</span></div>
                   <div className="checkout-item"><span>Paid</span><span style={{ color: '#4caf50', fontWeight: 700 }}>₱{(selected.paid_amount || 0).toLocaleString()}</span></div>

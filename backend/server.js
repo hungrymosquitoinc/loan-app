@@ -436,7 +436,7 @@ app.get('/api/loans/stats', authenticate, requireAdmin, requireSupabase, async (
   try {
     const base = `${supabaseConfig.supabaseUrl}/rest/v1/loans`;
     const h = { ...sbHeaders(), timeout: 10000 };
-    const [all, pending, approved, rejected, paid, disbursed, repaid, interest] = await Promise.all([
+    const [all, pending, approved, rejected, paid, disbursed, repaid, interest, allWithPayments] = await Promise.all([
       axios.get(`${base}?select=id,borrower_id`, h),
       axios.get(`${base}?select=id&status=eq.pending`, h),
       axios.get(`${base}?select=id,borrower_id&status=eq.approved`, h),
@@ -445,11 +445,14 @@ app.get('/api/loans/stats', authenticate, requireAdmin, requireSupabase, async (
       axios.get(`${base}?select=amount&status=in.(approved,paid)`, h),
       axios.get(`${base}?select=total_payable&status=eq.paid`, h),
       axios.get(`${base}?select=total_interest&status=eq.paid`, h),
+      axios.get(`${base}?select=payments`, h),
     ]);
     const allLoans = all.data || [];
     const paidLoans = paid.data || [];
     const approvedLoans = approved.data || [];
     const activeBorrowers = new Set([...approvedLoans.map(l => l.borrower_id), ...(pending.data || []).map(l => l.borrower_id)]);
+    const allPayments = (allWithPayments.data || []);
+    const totalPayments = allPayments.reduce((s, l) => s + (Array.isArray(l.payments) ? l.payments.length : 0), 0);
     res.json({
       total_loans: allLoans.length,
       pending: (pending.data || []).length,
@@ -461,9 +464,10 @@ app.get('/api/loans/stats', authenticate, requireAdmin, requireSupabase, async (
       total_interest: (interest.data || []).reduce((s, l) => s + Number(l.total_interest), 0),
       active_borrowers: activeBorrowers.size,
       total_borrowers: new Set(allLoans.map(l => l.borrower_id)).size,
+      total_payments: totalPayments,
     });
   } catch {
-    res.json({ total_loans: 0, pending: 0, approved: 0, rejected: 0, paid: 0, total_disbursed: 0, total_repaid: 0, total_interest: 0, active_borrowers: 0, total_borrowers: 0 });
+    res.json({ total_loans: 0, pending: 0, approved: 0, rejected: 0, paid: 0, total_disbursed: 0, total_repaid: 0, total_interest: 0, active_borrowers: 0, total_borrowers: 0, total_payments: 0 });
   }
 });
 
@@ -481,10 +485,11 @@ app.get('/api/loans/borrower-stats/:borrowerId', authenticate, requireSameUserOr
       pending: loans.filter(l => l.status === 'pending').length,
       total_borrowed: loans.reduce((s, l) => s + Number(l.amount), 0),
       total_payable: loans.reduce((s, l) => s + Number(l.total_payable), 0),
+      total_payments: loans.reduce((s, l) => s + (Array.isArray(l.payments) ? l.payments.length : 0), 0),
       outstanding: loans.filter(l => l.status === 'approved').reduce((s, l) => s + (Number(l.total_payable) - (Number(l.paid_amount) || 0)), 0),
     });
   } catch {
-    res.json({ total: 0, active: 0, paid: 0, pending: 0, total_borrowed: 0, total_payable: 0, outstanding: 0 });
+    res.json({ total: 0, active: 0, paid: 0, pending: 0, total_borrowed: 0, total_payable: 0, total_payments: 0, outstanding: 0 });
   }
 });
 

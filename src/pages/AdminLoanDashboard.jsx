@@ -60,6 +60,10 @@ export default function AdminLoanDashboard() {
           <span className="stat-value">{pendingKyc}</span>
           <span className="stat-label">KYC Queue</span>
         </div>
+        <div className="stat-card" style={{ borderTopColor: '#2196f3' }}>
+          <span className="stat-value">{stats?.total_payments || 0}</span>
+          <span className="stat-label">Payments Made</span>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginTop: 16 }}>
