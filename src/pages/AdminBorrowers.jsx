@@ -29,12 +29,18 @@ export default function AdminBorrowers() {
     } else {
       return
     }
-    const a = document.createElement('a')
-    a.href = href
-    a.download = name
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
+    fetch(href).then(r => r.blob()).then(blob => {
+      const blobUrl = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = blobUrl
+      a.download = name
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(blobUrl)
+    }).catch(() => {
+      window.open(href, '_blank')
+    })
   }
 
   async function loadBorrowers() {
