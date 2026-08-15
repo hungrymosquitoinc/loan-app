@@ -33,7 +33,7 @@ export default function BorrowerDashboard() {
   }
 
   function downloadImage(url, filename) {
-    fetch(url).then(r => r.blob()).then(blob => {
+    function triggerDownload(blob) {
       const blobUrl = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = blobUrl
@@ -42,9 +42,25 @@ export default function BorrowerDashboard() {
       a.click()
       a.remove()
       URL.revokeObjectURL(blobUrl)
-    }).catch(() => {
-      window.open(url, '_blank')
-    })
+    }
+    if (url.startsWith('data:')) {
+      const parts = url.split(',')
+      const mime = parts[0].match(/:(.*?);/)[1]
+      const b64 = parts[1]
+      const bin = atob(b64)
+      const arr = new Uint8Array(bin.length)
+      for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i)
+      triggerDownload(new Blob([arr], { type: mime }))
+    } else {
+      fetch(url).then(r => r.blob()).then(triggerDownload).catch(() => {
+        const a = document.createElement('a')
+        a.href = url
+        a.target = '_blank'
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+      })
+    }
   }
 
   if (loading) return <div className="page-loading">Loading...</div>
