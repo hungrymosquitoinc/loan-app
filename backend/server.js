@@ -433,37 +433,35 @@ app.get('/api/loans', authenticate, requireSupabase, async (req, res) => {
 });
 
 app.get('/api/loans/stats', authenticate, requireAdmin, requireSupabase, async (req, res) => {
+  const base = `${supabaseConfig.supabaseUrl}/rest/v1/loans`;
+  const h = { headers: sbHeaders(), timeout: 10000 };
+  async function q(url) { try { return (await axios.get(url, h)).data || [] } catch { return [] } }
   try {
-    const base = `${supabaseConfig.supabaseUrl}/rest/v1/loans`;
-    const h = { ...sbHeaders(), timeout: 10000 };
     const [all, pending, approved, rejected, paid, disbursed, repaid, interest, allWithPayments] = await Promise.all([
-      axios.get(`${base}?select=id,borrower_id`, h),
-      axios.get(`${base}?select=id&status=eq.pending`, h),
-      axios.get(`${base}?select=id,borrower_id&status=eq.approved`, h),
-      axios.get(`${base}?select=id&status=eq.rejected`, h),
-      axios.get(`${base}?select=id,borrower_id,amount,total_payable,total_interest&status=eq.paid`, h),
-      axios.get(`${base}?select=amount&status=in.(approved,paid)`, h),
-      axios.get(`${base}?select=total_payable&status=eq.paid`, h),
-      axios.get(`${base}?select=total_interest&status=eq.paid`, h),
-      axios.get(`${base}?select=payments`, h),
+      q(`${base}?select=id,borrower_id`),
+      q(`${base}?select=id&status=eq.pending`),
+      q(`${base}?select=id,borrower_id&status=eq.approved`),
+      q(`${base}?select=id&status=eq.rejected`),
+      q(`${base}?select=id,borrower_id,amount,total_payable,total_interest&status=eq.paid`),
+      q(`${base}?select=amount&status=in.(approved,paid)`),
+      q(`${base}?select=total_payable&status=eq.paid`),
+      q(`${base}?select=total_interest&status=eq.paid`),
+      q(`${base}?select=payments`),
     ]);
-    const allLoans = all.data || [];
-    const paidLoans = paid.data || [];
-    const approvedLoans = approved.data || [];
-    const activeBorrowers = new Set([...approvedLoans.map(l => l.borrower_id), ...(pending.data || []).map(l => l.borrower_id)]);
-    const allPayments = (allWithPayments.data || []);
-    const totalPayments = allPayments.reduce((s, l) => s + (Array.isArray(l.payments) ? l.payments.length : 0), 0);
+    const approvedLoans = approved;
+    const activeBorrowers = new Set([...approvedLoans.map(l => l.borrower_id), ...pending.map(l => l.borrower_id)]);
+    const totalPayments = allWithPayments.reduce((s, l) => s + (Array.isArray(l.payments) ? l.payments.length : 0), 0);
     res.json({
-      total_loans: allLoans.length,
-      pending: (pending.data || []).length,
+      total_loans: all.length,
+      pending: pending.length,
       approved: approvedLoans.length,
-      rejected: (rejected.data || []).length,
-      paid: paidLoans.length,
-      total_disbursed: (disbursed.data || []).reduce((s, l) => s + Number(l.amount), 0),
-      total_repaid: (repaid.data || []).reduce((s, l) => s + Number(l.total_payable), 0),
-      total_interest: (interest.data || []).reduce((s, l) => s + Number(l.total_interest), 0),
+      rejected: rejected.length,
+      paid: paid.length,
+      total_disbursed: disbursed.reduce((s, l) => s + Number(l.amount), 0),
+      total_repaid: repaid.reduce((s, l) => s + Number(l.total_payable), 0),
+      total_interest: interest.reduce((s, l) => s + Number(l.total_interest), 0),
       active_borrowers: activeBorrowers.size,
-      total_borrowers: new Set(allLoans.map(l => l.borrower_id)).size,
+      total_borrowers: new Set(all.map(l => l.borrower_id)).size,
       total_payments: totalPayments,
     });
   } catch {
