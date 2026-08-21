@@ -62,17 +62,48 @@ export default function MyLoans() {
               <div className="checkout-item"><span>Status</span><span className={`order-status status-${selected.status === 'approved' ? 'ready' : selected.status === 'paid' ? 'delivered' : selected.status === 'rejected' ? 'cancelled' : 'pending'}`}>{selected.status}</span></div>
               <div className="checkout-item"><span>Purpose</span><span>{selected.purpose || '—'}</span></div>
             </div>
-            {selected.payments && selected.payments.length > 0 && (
-              <div style={{ marginTop: 16 }}>
-                <h3>Payment History</h3>
-                {selected.payments.map((p, i) => (
-                  <div key={p.id || i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: '0.85rem' }}>
-                    <span>{new Date(p.date).toLocaleDateString()}</span>
-                    <span style={{ color: '#4caf50', fontWeight: 600 }}>₱{(p.amount || 0).toLocaleString()}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+            {(selected.status === 'approved' || selected.status === 'paid') && selected.payments && (() => {
+              const freq = selected.frequency || 'daily'
+              const startDate = selected.approved_at ? new Date(selected.approved_at) : new Date(selected.applied_at)
+              const totalSlots = selected.num_payments || 0
+              const payments = selected.payments || []
+              const emi = selected.emi || 0
+              const totalPayable = selected.total_payable || 0
+              const sortedPayments = [...payments].sort((a, b) => new Date(a.date) - new Date(b.date))
+              const schedule = []
+              let cumulativePaid = 0
+              let payIdx = 0
+              for (let i = 0; i < totalSlots; i++) {
+                const d = new Date(startDate)
+                if (freq === 'weekly') d.setDate(d.getDate() + i * 7)
+                else if (freq === 'monthly') d.setMonth(d.getMonth() + i)
+                else d.setDate(d.getDate() + i)
+                let matched = null
+                while (payIdx < sortedPayments.length && cumulativePaid < emi * (i + 1)) {
+                  matched = sortedPayments[payIdx]
+                  cumulativePaid += Number(matched.amount) || 0
+                  payIdx++
+                }
+                const isPaid = cumulativePaid >= emi * (i + 1) || (i === totalSlots - 1 && cumulativePaid >= totalPayable)
+                schedule.push({ date: d, paid: isPaid, amount: matched?.amount, paymentDate: matched?.date })
+              }
+              return schedule.length > 0 && (
+                <div style={{ marginTop: 16 }}>
+                  <h3>Payment Schedule ({payments.length} / {totalSlots})</h3>
+                  {schedule.map((s, i) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: '0.85rem' }}>
+                      <span style={{ color: s.paid ? 'inherit' : '#f44336', fontWeight: s.paid ? 400 : 600 }}>
+                        {i + 1}. {s.date.toLocaleDateString()}
+                        {s.paymentDate && <span style={{ fontWeight: 400, fontSize: '0.78rem', color: 'var(--text-secondary)' }}> (paid {new Date(s.paymentDate).toLocaleDateString()})</span>}
+                      </span>
+                      <span style={{ fontWeight: 600, color: s.paid ? '#4caf50' : '#f44336' }}>
+                        {s.paid ? `₱${(s.amount || emi).toLocaleString()}` : 'Unpaid'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )
+            })()}
           </div>
         </div>
       )}

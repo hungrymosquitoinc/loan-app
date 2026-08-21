@@ -121,19 +121,50 @@ export default function LoanDetail() {
         )}
       </div>
 
-      {loan.payments && loan.payments.length > 0 && (
-        <div className="checkout-section">
-          <h2>Payment History</h2>
-          <div className="checkout-items">
-            {loan.payments.map(p => (
-              <div key={p.id} className="checkout-item">
-                <span>{new Date(p.date).toLocaleDateString()}</span>
-                <span style={{ color: '#4caf50', fontWeight: 600 }}>₱{p.amount?.toLocaleString()} {p.note && <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>({p.note})</span>}</span>
-              </div>
-            ))}
+      {(loan.status === 'approved' || loan.status === 'paid') && loan.payments && (() => {
+        const freq = loan.frequency || 'daily'
+        const startDate = loan.approved_at ? new Date(loan.approved_at) : new Date(loan.applied_at)
+        const totalSlots = loan.num_payments || 0
+        const payments = loan.payments || []
+        const emi = loan.emi || 0
+        const totalPayable = loan.total_payable || 0
+        const sortedPayments = [...payments].sort((a, b) => new Date(a.date) - new Date(b.date))
+        const schedule = []
+        let cumulativePaid = 0
+        let payIdx = 0
+        for (let i = 0; i < totalSlots; i++) {
+          const d = new Date(startDate)
+          if (freq === 'weekly') d.setDate(d.getDate() + i * 7)
+          else if (freq === 'monthly') d.setMonth(d.getMonth() + i)
+          else d.setDate(d.getDate() + i)
+          let matched = null
+          while (payIdx < sortedPayments.length && cumulativePaid < emi * (i + 1)) {
+            matched = sortedPayments[payIdx]
+            cumulativePaid += Number(matched.amount) || 0
+            payIdx++
+          }
+          const isPaid = cumulativePaid >= emi * (i + 1) || (i === totalSlots - 1 && cumulativePaid >= totalPayable)
+          schedule.push({ date: d, paid: isPaid, amount: matched?.amount, paymentDate: matched?.date, note: matched?.note })
+        }
+        return schedule.length > 0 && (
+          <div className="checkout-section">
+            <h2>Payment Schedule ({payments.length} / {totalSlots})</h2>
+            <div className="checkout-items">
+              {schedule.map((s, i) => (
+                <div key={i} className="checkout-item">
+                  <span style={{ color: s.paid ? 'inherit' : '#f44336', fontWeight: s.paid ? 400 : 600 }}>
+                    {i + 1}. {s.date.toLocaleDateString()}
+                    {s.paymentDate && <span style={{ fontWeight: 400, fontSize: '0.78rem', color: 'var(--text-secondary)' }}> (paid {new Date(s.paymentDate).toLocaleDateString()})</span>}
+                  </span>
+                  <span style={{ fontWeight: 600, color: s.paid ? '#4caf50' : '#f44336' }}>
+                    {s.paid ? `₱${(s.amount || emi).toLocaleString()}${s.note ? ` (${s.note})` : ''}` : 'Unpaid'}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {(isAdmin && loan.status === 'pending') && (
         <div className="checkout-section">

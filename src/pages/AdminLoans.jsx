@@ -135,21 +135,54 @@ export default function AdminLoans() {
               )}
             </div>
 
-            {selected.payments && selected.payments.length > 0 && (
-              <div style={{ marginTop: 12 }} className="animate-slide-up">
-                <h3>Payment History ({selected.payments.length})</h3>
-                {selected.payments.map((p, i) => (
-                  <div key={p.id || i} className="animate-slide-in" style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border)', fontSize: '0.85rem', animationDelay: `${i * 0.03}s` }}>
-                    <span>{new Date(p.date).toLocaleDateString()}</span>
-                    <span style={{ fontWeight: 600, color: '#4caf50' }}>₱{(p.amount || 0).toLocaleString()}</span>
+            {(selected.status === 'approved' || selected.status === 'paid') && selected.payments && (() => {
+              const freq = selected.frequency || 'daily'
+              const startDate = selected.approved_at ? new Date(selected.approved_at) : new Date(selected.applied_at)
+              const totalSlots = selected.num_payments || 0
+              const payments = selected.payments || []
+              const emi = selected.emi || 0
+              const totalPayable = selected.total_payable || 0
+              const lastSlotEmit = totalPayable - emi * (totalSlots - 1)
+              const sortedPayments = [...payments].sort((a, b) => new Date(a.date) - new Date(b.date))
+              const schedule = []
+              let cumulativePaid = 0
+              let payIdx = 0
+              for (let i = 0; i < totalSlots; i++) {
+                const d = new Date(startDate)
+                if (freq === 'weekly') d.setDate(d.getDate() + i * 7)
+                else if (freq === 'monthly') d.setMonth(d.getMonth() + i)
+                else d.setDate(d.getDate() + i)
+                const slotTarget = i === totalSlots - 1 ? totalPayable - cumulativePaid : emi
+                let matched = null
+                while (payIdx < sortedPayments.length && cumulativePaid < emi * (i + 1)) {
+                  matched = sortedPayments[payIdx]
+                  cumulativePaid += Number(matched.amount) || 0
+                  payIdx++
+                }
+                const isPaid = cumulativePaid >= emi * (i + 1) || (i === totalSlots - 1 && cumulativePaid >= totalPayable)
+                schedule.push({ date: d, paid: isPaid, amount: matched?.amount, paymentDate: matched?.date })
+              }
+              return schedule.length > 0 && (
+                <div style={{ marginTop: 12 }} className="animate-slide-up">
+                  <h3>Payment Schedule ({payments.length} / {totalSlots})</h3>
+                  {schedule.map((s, i) => (
+                    <div key={i} className="animate-slide-in" style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border)', fontSize: '0.85rem', animationDelay: `${i * 0.03}s` }}>
+                      <span style={{ color: s.paid ? 'inherit' : '#f44336', fontWeight: s.paid ? 400 : 600 }}>
+                        {i + 1}. {s.date.toLocaleDateString()}
+                        {s.paymentDate && <span style={{ fontWeight: 400, fontSize: '0.78rem', color: 'var(--text-secondary)' }}> (paid {new Date(s.paymentDate).toLocaleDateString()})</span>}
+                      </span>
+                      <span style={{ fontWeight: 600, color: s.paid ? '#4caf50' : '#f44336' }}>
+                        {s.paid ? `₱${(s.amount || emi).toLocaleString()}` : 'Unpaid'}
+                      </span>
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontWeight: 700, fontSize: '0.9rem' }}>
+                    <span>Total Paid</span>
+                    <span style={{ color: '#4caf50' }}>₱{(selected.paid_amount || 0).toLocaleString()}</span>
                   </div>
-                ))}
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontWeight: 700, fontSize: '0.9rem' }}>
-                  <span>Total Paid</span>
-                  <span style={{ color: '#4caf50' }}>₱{(selected.paid_amount || 0).toLocaleString()}</span>
                 </div>
-              </div>
-            )}
+              )
+            })()}
 
             {selected.status === 'approved' && (
               <div style={{ marginTop: 12 }}>
