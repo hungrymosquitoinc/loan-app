@@ -68,7 +68,7 @@ export default function MyLoans() {
               const totalSlots = selected.num_payments || 0
               const payments = selected.payments || []
               const emi = selected.emi || 0
-              const toLocalStr = (d) => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}` }
+              const toLocalStr = (d) => { const x = new Date(d); if (x.getHours() >= 18) x.setDate(x.getDate() + 1); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}` }
               const schedule = []
               for (let i = 0; i < totalSlots; i++) {
                 const d = new Date(startDate)

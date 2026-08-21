@@ -127,7 +127,7 @@ export default function LoanDetail() {
         const totalSlots = loan.num_payments || 0
         const payments = loan.payments || []
         const emi = loan.emi || 0
-        const toLocalStr = (d) => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}` }
+        const toLocalStr = (d) => { const x = new Date(d); if (x.getHours() >= 18) x.setDate(x.getDate() + 1); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}` }
         const schedule = []
         for (let i = 0; i < totalSlots; i++) {
           const d = new Date(startDate)
