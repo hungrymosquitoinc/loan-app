@@ -156,7 +156,8 @@ export default function AdminLoans() {
               const now = new Date()
               const todayStr = toLocalStr(now)
               const today6pm = new Date(now); today6pm.setHours(18, 0, 0, 0)
-              const daysPassed = schedule.filter(s => { const ds = toLocalStr(s.date); return ds < todayStr || (ds === todayStr && now >= today6pm) }).length
+              const todayPaid = payments.some(p => toLocalStr(new Date(p.date)) === todayStr)
+              const daysPassed = schedule.filter(s => { const ds = toLocalStr(s.date); return ds < todayStr || (ds === todayStr && (now >= today6pm || todayPaid)) }).length
               return schedule.length > 0 && (
                 <div style={{ marginTop: 12 }} className="animate-slide-up">
                   <h3>Payment Schedule ({daysPassed} / {totalSlots})</h3>
