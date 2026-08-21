@@ -683,13 +683,12 @@ app.post('/api/loans/:id/pay', authenticate, requireAdmin, requireSupabase, vali
       updateData.paid_at = new Date().toISOString();
     }
 
-    // Atomic update: only succeed if paid_amount hasn't changed since we read it (optimistic lock)
     const r = await axios.patch(
-      `${supabaseConfig.supabaseUrl}/rest/v1/loans?id=eq.${encodeURIComponent(req.params.id)}&paid_amount=eq.${Number(loan.paid_amount) || 0}`,
+      `${supabaseConfig.supabaseUrl}/rest/v1/loans?id=eq.${encodeURIComponent(req.params.id)}`,
       updateData,
-      { headers: { ...sbHeaders(), Prefer: 'return=representation' }, timeout: 5000 }
+      { headers: { ...sbHeaders(), Prefer: 'return=representation' }, timeout: 10000 }
     );
-    if (!r.data?.length) return res.status(409).json({ error: 'Payment conflict — please try again' });
+    if (!r.data?.length) return res.status(500).json({ error: 'Failed to record payment' });
     res.json(r.data[0]);
   } catch {
     res.status(500).json({ error: 'Failed to record payment' });
