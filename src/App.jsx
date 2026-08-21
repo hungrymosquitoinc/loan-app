@@ -47,6 +47,13 @@ function parseAuthHash() {
   }
 }
 
+function GuestRoute({ children }) {
+  const { user, loading } = useAuth()
+  if (loading) return <div className="page-loading">Loading...</div>
+  if (user) return <Navigate to={user.role === 'admin' ? '/admin' : '/'} replace />
+  return children
+}
+
 function AppShell() {
   useLocation()
   const { rawHash, isRecoveryUrl, isConfirmUrl, showCleanAuthPage } = parseAuthHash()
@@ -70,8 +77,8 @@ function AppShell() {
               <main className="main-content">
                 <PageTransition>
                 <Routes>
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
+                  <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
+                  <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
@@ -91,7 +98,7 @@ function AppShell() {
               </main>
               <BottomNav />
               <footer className="app-footer">
-                © {new Date().getFullYear()} JSR Lending Inc &nbsp;|&nbsp; Created by: J.S.Rionda a.k.a r00t©™ &nbsp;|&nbsp; v{pkg.version}
+                © {new Date().getFullYear()} JSR Lending Inc &nbsp;|&nbsp; Created by: r00t©™ &nbsp;|&nbsp; v{pkg.version}
               </footer>
             </div>
           )}
