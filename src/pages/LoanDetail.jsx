@@ -127,14 +127,15 @@ export default function LoanDetail() {
         const totalSlots = loan.num_payments || 0
         const payments = loan.payments || []
         const emi = loan.emi || 0
+        const toLocalStr = (d) => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}` }
         const schedule = []
         for (let i = 0; i < totalSlots; i++) {
           const d = new Date(startDate)
           if (freq === 'weekly') d.setDate(d.getDate() + i * 7)
           else if (freq === 'monthly') d.setMonth(d.getMonth() + i)
           else d.setDate(d.getDate() + i)
-          const dateStr = d.toISOString().slice(0, 10)
-          const matched = payments.find(p => new Date(p.date).toISOString().slice(0, 10) === dateStr)
+          const dateStr = toLocalStr(d)
+          const matched = payments.find(p => toLocalStr(new Date(p.date)) === dateStr)
           schedule.push({ date: d, paid: !!matched, amount: matched?.amount, note: matched?.note })
         }
         return schedule.length > 0 && (
