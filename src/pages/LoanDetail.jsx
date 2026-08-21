@@ -127,24 +127,15 @@ export default function LoanDetail() {
         const totalSlots = loan.num_payments || 0
         const payments = loan.payments || []
         const emi = loan.emi || 0
-        const totalPayable = loan.total_payable || 0
-        const sortedPayments = [...payments].sort((a, b) => new Date(a.date) - new Date(b.date))
         const schedule = []
-        let cumulativePaid = 0
-        let payIdx = 0
         for (let i = 0; i < totalSlots; i++) {
           const d = new Date(startDate)
           if (freq === 'weekly') d.setDate(d.getDate() + i * 7)
           else if (freq === 'monthly') d.setMonth(d.getMonth() + i)
           else d.setDate(d.getDate() + i)
-          let matched = null
-          while (payIdx < sortedPayments.length && cumulativePaid < emi * (i + 1)) {
-            matched = sortedPayments[payIdx]
-            cumulativePaid += Number(matched.amount) || 0
-            payIdx++
-          }
-          const isPaid = cumulativePaid >= emi * (i + 1) || (i === totalSlots - 1 && cumulativePaid >= totalPayable)
-          schedule.push({ date: d, paid: isPaid, amount: matched?.amount, paymentDate: matched?.date, note: matched?.note })
+          const dateStr = d.toISOString().slice(0, 10)
+          const matched = payments.find(p => new Date(p.date).toISOString().slice(0, 10) === dateStr)
+          schedule.push({ date: d, paid: !!matched, amount: matched?.amount, note: matched?.note })
         }
         return schedule.length > 0 && (
           <div className="checkout-section">
@@ -154,10 +145,9 @@ export default function LoanDetail() {
                 <div key={i} className="checkout-item">
                   <span style={{ color: s.paid ? 'inherit' : '#f44336', fontWeight: s.paid ? 400 : 600 }}>
                     {i + 1}. {s.date.toLocaleDateString()}
-                    {s.paymentDate && <span style={{ fontWeight: 400, fontSize: '0.78rem', color: 'var(--text-secondary)' }}> (paid {new Date(s.paymentDate).toLocaleDateString()})</span>}
                   </span>
                   <span style={{ fontWeight: 600, color: s.paid ? '#4caf50' : '#f44336' }}>
-                    {s.paid ? `₱${(s.amount || emi).toLocaleString()}${s.note ? ` (${s.note})` : ''}` : `₱${emi.toLocaleString()}`}
+                    {s.paid ? `₱${(s.amount || emi).toLocaleString()}${s.note ? ` (${s.note})` : ''}` : '\u00A0'}
                   </span>
                 </div>
               ))}
