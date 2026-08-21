@@ -8,6 +8,8 @@ export default function ResetPassword({ rawHash }) {
   const navigate = useNavigate()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
+  const [showPw, setShowPw] = useState(false)
+  const [showPw2, setShowPw2] = useState(false)
   const [msg, setMsg] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -67,11 +69,13 @@ export default function ResetPassword({ rawHash }) {
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label>New Password</label>
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="At least 8 characters" required />
+              <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="At least 8 characters" required />
+              <button type="button" className="pw-toggle" onClick={() => setShowPw(!showPw)}>{showPw ? '🙈' : '👁'}</button>
             </div>
             <div className="form-group">
               <label>Confirm Password</label>
-              <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="Re-enter password" required />
+              <input type={showPw2 ? 'text' : 'password'} value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="Re-enter password" required />
+              <button type="button" className="pw-toggle" onClick={() => setShowPw2(!showPw2)}>{showPw2 ? '🙈' : '👁'}</button>
             </div>
             <button type="submit" className="btn btn-primary btn-block" disabled={loading}>{loading ? 'Updating...' : 'Update Password'}</button>
           </form>

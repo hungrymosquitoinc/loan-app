@@ -7,6 +7,7 @@ export default function Register() {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
+  const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState('')
   const [registered, setRegistered] = useState(false)
   const { register } = useAuth()
@@ -81,7 +82,8 @@ export default function Register() {
           </div>
           <div className="form-group">
             <label>Password</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Min 8 chars, uppercase, lowercase, number, special" required />
+            <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min 8 chars, uppercase, lowercase, number, special" required />
+            <button type="button" className="pw-toggle" onClick={() => setShowPw(!showPw)}>{showPw ? '🙈' : '👁'}</button>
           </div>
           {password && (
             <div style={{ fontSize: '0.78rem', marginBottom: 12 }}>

@@ -12,6 +12,7 @@ export default function BorrowerProfile() {
   const [showChangePw, setShowChangePw] = useState(false)
   const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' })
   const [pwMsg, setPwMsg] = useState('')
+  const [showPw, setShowPw] = useState(false)
 
   useEffect(() => {
     if (user?.phone && !phone) setPhone(user.phone)
@@ -89,7 +90,7 @@ export default function BorrowerProfile() {
         <div className="modal-overlay" onClick={() => setShowChangePw(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <h2>Change Password</h2>
-            <div className="form-group"><label>Current Password</label><input type="password" value={pwForm.current} onChange={e => setPwForm({ ...pwForm, current: e.target.value })} /></div>
+            <div className="form-group"><label>Current Password</label><input type={showPw ? 'text' : 'password'} value={pwForm.current} onChange={e => setPwForm({ ...pwForm, current: e.target.value })} /><button type="button" className="pw-toggle" onClick={() => setShowPw(!showPw)}>{showPw ? '🙈' : '👁'}</button></div>
             <div className="form-group"><label>New Password</label><input type="password" value={pwForm.newPw} onChange={e => setPwForm({ ...pwForm, newPw: e.target.value })} /></div>
             <div className="form-group"><label>Confirm New Password</label><input type="password" value={pwForm.confirm} onChange={e => setPwForm({ ...pwForm, confirm: e.target.value })} /></div>
             {pwMsg && <p style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: 12, color: pwMsg.includes('success') ? 'var(--success)' : 'var(--danger)' }}>{pwMsg}</p>}
