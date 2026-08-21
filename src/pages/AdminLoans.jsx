@@ -153,8 +153,10 @@ export default function AdminLoans() {
                 const totalDay = matched.reduce((s, p) => s + (Number(p.amount) || 0), 0)
                 schedule.push({ date: d, paid: matched.length > 0, amount: totalDay })
               }
-              const today = toLocalStr(new Date())
-              const daysPassed = schedule.filter(s => toLocalStr(s.date) <= today).length
+              const now = new Date()
+              const todayStr = toLocalStr(now)
+              const today6pm = new Date(now); today6pm.setHours(18, 0, 0, 0)
+              const daysPassed = schedule.filter(s => { const ds = toLocalStr(s.date); return ds < todayStr || (ds === todayStr && now >= today6pm) }).length
               return schedule.length > 0 && (
                 <div style={{ marginTop: 12 }} className="animate-slide-up">
                   <h3>Payment Schedule ({daysPassed} / {totalSlots})</h3>
