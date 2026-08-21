@@ -121,7 +121,7 @@ export default function LoanDetail() {
         )}
       </div>
 
-      {(loan.status === 'approved' || loan.status === 'paid') && loan.payments && (() => {
+      {(loan.status === 'approved' || loan.status === 'paid') && (() => {
         const freq = loan.frequency || 'daily'
         const startDate = loan.approved_at ? new Date(loan.approved_at) : new Date(loan.applied_at)
         const totalSlots = loan.num_payments || 0

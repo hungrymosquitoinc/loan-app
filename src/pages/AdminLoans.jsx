@@ -135,7 +135,7 @@ export default function AdminLoans() {
               )}
             </div>
 
-            {(selected.status === 'approved' || selected.status === 'paid') && selected.payments && (() => {
+            {(selected.status === 'approved' || selected.status === 'paid') && (() => {
               const freq = selected.frequency || 'daily'
               const startDate = selected.approved_at ? new Date(selected.approved_at) : new Date(selected.applied_at)
               const totalSlots = selected.num_payments || 0
