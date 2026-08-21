@@ -157,7 +157,7 @@ export default function LoanDetail() {
                     {s.paymentDate && <span style={{ fontWeight: 400, fontSize: '0.78rem', color: 'var(--text-secondary)' }}> (paid {new Date(s.paymentDate).toLocaleDateString()})</span>}
                   </span>
                   <span style={{ fontWeight: 600, color: s.paid ? '#4caf50' : '#f44336' }}>
-                    {s.paid ? `₱${(s.amount || emi).toLocaleString()}${s.note ? ` (${s.note})` : ''}` : 'Unpaid'}
+                    {s.paid ? `₱${(s.amount || emi).toLocaleString()}${s.note ? ` (${s.note})` : ''}` : `₱${emi.toLocaleString()}`}
                   </span>
                 </div>
               ))}

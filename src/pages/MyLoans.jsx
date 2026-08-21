@@ -97,7 +97,7 @@ export default function MyLoans() {
                         {s.paymentDate && <span style={{ fontWeight: 400, fontSize: '0.78rem', color: 'var(--text-secondary)' }}> (paid {new Date(s.paymentDate).toLocaleDateString()})</span>}
                       </span>
                       <span style={{ fontWeight: 600, color: s.paid ? '#4caf50' : '#f44336' }}>
-                        {s.paid ? `₱${(s.amount || emi).toLocaleString()}` : 'Unpaid'}
+                        {s.paid ? `₱${(s.amount || emi).toLocaleString()}` : `₱${emi.toLocaleString()}`}
                       </span>
                     </div>
                   ))}
