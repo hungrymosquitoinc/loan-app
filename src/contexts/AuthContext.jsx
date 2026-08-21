@@ -8,26 +8,19 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  async function fetchProfile(userId) {
-    const authHeaders = {}
-    try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.access_token) authHeaders['Authorization'] = `Bearer ${session.access_token}`
-    } catch {}
-    try {
-      const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
-      if (data) {
-        try {
-          const r = await fetch(`${import.meta.env.VITE_API_URL}/profile/${userId}`, { headers: authHeaders })
-          if (r.ok) { const ext = await r.json(); return { ...data, ...ext } }
-        } catch {}
-        return data
-      }
-    } catch {}
-    try {
-      const r = await fetch(`${import.meta.env.VITE_API_URL}/profile/${userId}`, { headers: authHeaders })
-      if (r.ok) return await r.json()
-    } catch {}
+  async function fetchProfile(userId, token) {
+    let accessToken = token
+    if (!accessToken) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.access_token) accessToken = session.access_token
+      } catch {}
+    }
+    const authHeaders = accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
+    const supaPromise = supabase.from('profiles').select('*').eq('id', userId).single().then(r => r.data).catch(() => null)
+    const apiPromise = fetch(`${import.meta.env.VITE_API_URL}/profile/${userId}`, { headers: authHeaders }).then(r => r.ok ? r.json() : null).catch(() => null)
+    const [supaData, apiData] = await Promise.all([supaPromise, apiPromise])
+    if (supaData || apiData) return { ...supaData, ...apiData }
     return null
   }
 
@@ -71,7 +64,8 @@ export function AuthProvider({ children }) {
       return { ok: false, reason: error.message }
     }
     if (data?.user) {
-      const profile = await fetchProfile(data.user.id)
+      const token = data.session?.access_token
+      const profile = await fetchProfile(data.user.id, token)
       const userData = profile
         ? { id: data.user.id, email: data.user.email, ...profile }
         : { id: data.user.id, email: data.user.email }
