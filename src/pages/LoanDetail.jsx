@@ -135,8 +135,9 @@ export default function LoanDetail() {
           else if (freq === 'monthly') d.setMonth(d.getMonth() + i)
           else d.setDate(d.getDate() + i)
           const dateStr = toLocalStr(d)
-          const matched = payments.find(p => toLocalStr(new Date(p.date)) === dateStr)
-          schedule.push({ date: d, paid: !!matched, amount: matched?.amount, note: matched?.note })
+          const matched = payments.filter(p => toLocalStr(new Date(p.date)) === dateStr)
+          const totalDay = matched.reduce((s, p) => s + (Number(p.amount) || 0), 0)
+          schedule.push({ date: d, paid: matched.length > 0, amount: totalDay, note: matched.map(p => p.note).filter(Boolean).join(', ') })
         }
         const today = toLocalStr(new Date())
         const daysPassed = schedule.filter(s => toLocalStr(s.date) <= today).length
