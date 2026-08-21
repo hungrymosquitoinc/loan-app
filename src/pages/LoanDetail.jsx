@@ -127,7 +127,7 @@ export default function LoanDetail() {
         const totalSlots = loan.num_payments || 0
         const payments = loan.payments || []
         const emi = loan.emi || 0
-        const toLocalStr = (d) => { const x = new Date(d); if (x.getHours() >= 18) x.setDate(x.getDate() + 1); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}` }
+        const toLocalStr = (d) => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}` }
         const schedule = []
         for (let i = 0; i < totalSlots; i++) {
           const d = new Date(startDate)
@@ -138,9 +138,11 @@ export default function LoanDetail() {
           const matched = payments.find(p => toLocalStr(new Date(p.date)) === dateStr)
           schedule.push({ date: d, paid: !!matched, amount: matched?.amount, note: matched?.note })
         }
+        const today = toLocalStr(new Date())
+        const daysPassed = schedule.filter(s => toLocalStr(s.date) <= today).length
         return schedule.length > 0 && (
           <div className="checkout-section">
-            <h2>Payment Schedule ({payments.length} / {totalSlots})</h2>
+            <h2>Payment Schedule ({daysPassed} / {totalSlots})</h2>
             <div className="checkout-items">
               {schedule.map((s, i) => (
                 <div key={i} className="checkout-item">

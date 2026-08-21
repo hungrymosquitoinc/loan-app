@@ -68,7 +68,7 @@ export default function MyLoans() {
               const totalSlots = selected.num_payments || 0
               const payments = selected.payments || []
               const emi = selected.emi || 0
-              const toLocalStr = (d) => { const x = new Date(d); if (x.getHours() >= 18) x.setDate(x.getDate() + 1); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}` }
+              const toLocalStr = (d) => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}` }
               const schedule = []
               for (let i = 0; i < totalSlots; i++) {
                 const d = new Date(startDate)
@@ -79,9 +79,11 @@ export default function MyLoans() {
                 const matched = payments.find(p => toLocalStr(new Date(p.date)) === dateStr)
                 schedule.push({ date: d, paid: !!matched, amount: matched?.amount })
               }
+              const today = toLocalStr(new Date())
+              const daysPassed = schedule.filter(s => toLocalStr(s.date) <= today).length
               return schedule.length > 0 && (
                 <div style={{ marginTop: 16 }}>
-                  <h3>Payment Schedule ({payments.length} / {totalSlots})</h3>
+                  <h3>Payment Schedule ({daysPassed} / {totalSlots})</h3>
                   {schedule.map((s, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: '0.85rem' }}>
                       <span style={{ color: s.paid ? 'inherit' : '#f44336', fontWeight: s.paid ? 400 : 600 }}>

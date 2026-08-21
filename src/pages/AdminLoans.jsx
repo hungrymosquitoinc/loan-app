@@ -152,9 +152,11 @@ export default function AdminLoans() {
                 const matched = payments.find(p => toLocalStr(new Date(p.date)) === dateStr)
                 schedule.push({ date: d, paid: !!matched, amount: matched?.amount })
               }
+              const today = toLocalStr(new Date())
+              const daysPassed = schedule.filter(s => toLocalStr(s.date) <= today).length
               return schedule.length > 0 && (
                 <div style={{ marginTop: 12 }} className="animate-slide-up">
-                  <h3>Payment Schedule ({payments.length} / {totalSlots})</h3>
+                  <h3>Payment Schedule ({daysPassed} / {totalSlots})</h3>
                   {schedule.map((s, i) => (
                     <div key={i} className="animate-slide-in" style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border)', fontSize: '0.85rem', animationDelay: `${i * 0.03}s` }}>
                       <span style={{ color: s.paid ? 'inherit' : '#f44336', fontWeight: s.paid ? 400 : 600 }}>
