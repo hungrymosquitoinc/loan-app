@@ -115,7 +115,7 @@ function generateId(prefix) {
 
 // --- Middleware ---
 
-app.set('trust proxy', process.env.TRUST_PROXY === 'true' ? 1 : false);
+app.set('trust proxy', IS_PRODUCTION ? 1 : false);
 
 app.use(helmet({
   contentSecurityPolicy: IS_PRODUCTION ? {
@@ -138,7 +138,8 @@ app.use(helmet({
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
+    if (!origin && !IS_PRODUCTION) return callback(null, true);
+    if (!origin) return callback(null, false);
     if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
     return callback(null, false);
   },
@@ -146,6 +147,9 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 }));
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function isValidUUID(v) { return typeof v === 'string' && UUID_RE.test(v); }
 
 app.use((req, res, next) => {
   if (req.method === 'PUT' && /^\/api\/borrowers\/[^/]+\/kyc$/.test(req.path)) {
@@ -184,6 +188,14 @@ const financialLimiter = rateLimit({
 });
 app.use('/api/loans', financialLimiter);
 app.use('/api/borrowers', financialLimiter);
+
+const writeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many write operations. Please try again later.' },
+});
 app.use('/api/admin/payment-methods', financialLimiter);
 
 // --- Health Check ---
@@ -814,6 +826,10 @@ app.get('/api/profile/:id', authenticate, requireSameUserOrAdmin, requireSupabas
     );
     if (!r.data?.length) return res.status(404).json({ error: 'Profile not found' });
     const { password: _, ...safeUser } = r.data[0];
+    if (req.user.role !== 'admin' && req.user.id !== req.params.id) {
+      const { id_number: _i, bank_account: _b, account_holder: _h, account_number: _n, id_image: _im, selfie_image: _s, ...pub } = safeUser;
+      return res.json(pub);
+    }
     res.json(safeUser);
   } catch {
     res.status(404).json({ error: 'Profile not found' });
@@ -839,6 +855,7 @@ app.put('/api/profile', authenticate, requireSupabase, validateRequest(profileUp
 
 app.put('/api/admin/profile', authenticate, requireAdmin, requireSupabase, validateRequest(profileUpdateSchema), async (req, res) => {
   const { id, name, phone } = req.body;
+  if (!isValidUUID(id)) return res.status(400).json({ error: 'Invalid user ID' });
   try {
     const r = await axios.patch(
       `${supabaseConfig.supabaseUrl}/rest/v1/profiles?id=eq.${id}`,
@@ -1044,6 +1061,9 @@ app.put('/api/borrowers/:id/kyc', authenticate, requireSameUserOrAdmin, requireS
           from_user_id: req.params.id,
           link: '/admin/kyc',
         });
+      }
+      if (data.kyc_status && req.user.role === 'admin') {
+        logSafe('KYC audit', `Admin ${req.user.id} set KYC for ${req.params.id} to ${data.kyc_status}`);
       }
       return res.json({ success: true, profile: r.data?.[0] || supabaseData });
     }
