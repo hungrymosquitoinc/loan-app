@@ -85,6 +85,19 @@ export default function MyLoans() {
               const today6pm = new Date(now); today6pm.setHours(18, 0, 0, 0)
               const todayPaid = payments.some(p => toLocalStr(new Date(p.date)) === todayStr)
               const daysPassed = schedule.filter(s => { const ds = toLocalStr(s.date); return ds < todayStr || (ds === todayStr && (now >= today6pm || todayPaid)) }).length
+              const lastDue = schedule[totalSlots - 1]?.date
+              const remaining = Math.max(0, (selected.total_payable || 0) - (selected.paid_amount || 0))
+              let overdueDays = 0
+              if (remaining > 0 && lastDue) {
+                const dueStr = toLocalStr(lastDue)
+                if (todayStr > dueStr) {
+                  const due = new Date(lastDue); due.setHours(23,59,59,999)
+                  const diff = now.getTime() - due.getTime()
+                  if (diff > 0) overdueDays = Math.floor(diff / (1000*60*60*24)) + 1
+                } else if (todayStr === dueStr && now >= today6pm && daysPassed >= totalSlots) {
+                  overdueDays = 1
+                }
+              }
               return schedule.length > 0 && (
                 <div style={{ marginTop: 16 }}>
                   <h3>Payment Schedule ({daysPassed} / {totalSlots})</h3>
@@ -98,6 +111,12 @@ export default function MyLoans() {
                       </span>
                     </div>
                   ))}
+                  {overdueDays > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', fontWeight: 700, fontSize: '0.9rem', color: '#f44336' }}>
+                      <span>Overdue ({overdueDays} {overdueDays === 1 ? 'day' : 'days'})</span>
+                      <span>₱{remaining.toLocaleString()}</span>
+                    </div>
+                  )}
                 </div>
               )
             })()}
