@@ -116,7 +116,7 @@ export default function AdminLoans() {
       {selected && (
         <div className="modal-overlay">
           <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 500 }}>
-            <div className="modal-header"><h3>{selected.borrower_name} <small style={{ opacity: 0.7 }}>#{selected.id?.split('-')[1]?.slice(0,6).toUpperCase()}</small></h3><button className="modal-close" onClick={() => setSelected(null)}>×</button></div>
+            <div className="modal-header"><h3>{selected.borrower_name} <small style={{ opacity: 0.7 }}>#{(loans.findIndex(l => l.id === selected.id) + 1).toString().padStart(5, '0')}</small></h3><button className="modal-close" onClick={() => setSelected(null)}>×</button></div>
             <div className="checkout-items">
               <div className="checkout-item"><span>Amount</span><span>₱{selected.amount?.toLocaleString()}</span></div>
               <div className="checkout-item"><span>Frequency</span><span>{selected.frequency || selected.interest_type || '—'}</span></div>
