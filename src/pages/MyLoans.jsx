@@ -91,10 +91,10 @@ export default function MyLoans() {
               if (remaining > 0 && lastDue) {
                 const endOfDue = new Date(lastDue)
                 endOfDue.setHours(23, 59, 59, 999)
-                if (now > endOfDue) {
+                if (now >= endOfDue) {
                   const diffMs = now.getTime() - endOfDue.getTime()
-                  overdueDays = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1
-                  if (overdueDays < 1) overdueDays = 1
+                  overdueDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+                  if (overdueDays < 0) overdueDays = 0
                 }
               }
               return schedule.length > 0 && (
