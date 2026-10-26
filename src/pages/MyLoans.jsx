@@ -89,13 +89,12 @@ export default function MyLoans() {
               const remaining = Math.max(0, (selected.total_payable || 0) - (selected.paid_amount || 0))
               let overdueDays = 0
               if (remaining > 0 && lastDue) {
-                const dueStr = toLocalStr(lastDue)
-                if (todayStr > dueStr) {
-                  const due = new Date(lastDue); due.setHours(23,59,59,999)
-                  const diff = now.getTime() - due.getTime()
-                  if (diff > 0) overdueDays = Math.floor(diff / (1000*60*60*24)) + 1
-                } else if (todayStr === dueStr && now >= today6pm && daysPassed >= totalSlots) {
-                  overdueDays = 1
+                const endOfDue = new Date(lastDue)
+                endOfDue.setHours(23, 59, 59, 999)
+                if (now > endOfDue) {
+                  const diffMs = now.getTime() - endOfDue.getTime()
+                  overdueDays = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1
+                  if (overdueDays < 1) overdueDays = 1
                 }
               }
               return schedule.length > 0 && (
