@@ -204,6 +204,41 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// --- App Version / Update Check ---
+
+const ROOT_DIR = path.join(__dirname, '..');
+const APK_PATH = path.join(ROOT_DIR, 'JSR-Lending.apk');
+
+function readAppVersion() {
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf8'));
+    return pkg.version || '0.0.0';
+  } catch {
+    return '0.0.0';
+  }
+}
+
+// Lets the installed Android app ask whether a newer build exists.
+// latest comes from package.json (override with APP_VERSION); apk_url can point at
+// externally hosted storage via APP_APK_URL, otherwise the APK in the project root is
+// served directly when it is present on the server.
+app.get('/api/version', (req, res) => {
+  const latest = process.env.APP_VERSION || readAppVersion();
+  let apk_url = process.env.APP_APK_URL || null;
+  if (!apk_url && fs.existsSync(APK_PATH)) {
+    apk_url = `${req.protocol}://${req.get('host')}/download/app.apk`;
+  }
+  res.set('Cache-Control', 'no-store');
+  res.json({ latest, apk_url, web_version: latest });
+});
+
+app.get('/download/app.apk', (req, res) => {
+  if (!fs.existsSync(APK_PATH)) {
+    return res.status(404).json({ error: 'APK not available' });
+  }
+  res.download(APK_PATH, 'JSR-Lending.apk');
+});
+
 // --- Validation Schemas ---
 
 const loanProductSchema = z.object({
@@ -1172,6 +1207,12 @@ if (fs.existsSync(confirmScriptPath)) {
 
 const DIST_DIR = path.join(__dirname, '..', 'dist');
 if (fs.existsSync(path.join(DIST_DIR, 'index.html'))) {
+  // The service worker file changes on every build; never let a cached copy of it
+  // delay an update from reaching clients.
+  app.use((req, res, next) => {
+    if (req.path === '/sw.js') res.set('Cache-Control', 'no-cache, must-revalidate');
+    next();
+  });
   app.use(express.static(DIST_DIR));
   app.get(/^\/(?!api\/).*/, (req, res) => {
     res.sendFile(path.join(DIST_DIR, 'index.html'));

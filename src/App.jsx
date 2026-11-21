@@ -5,6 +5,7 @@ import { NotificationProvider } from './contexts/NotificationContext'
 import Navbar from './components/Navbar'
 import BottomNav from './components/BottomNav'
 import PageTransition from './components/PageTransition'
+import AppUpdateBanner from './components/AppUpdateBanner'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -75,6 +76,7 @@ function AppShell() {
             <div className="app">
               <Navbar />
               <main className="main-content">
+                <AppUpdateBanner />
                 <PageTransition>
                 <Routes>
                   <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />

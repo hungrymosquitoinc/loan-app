@@ -22,3 +22,8 @@ services:
         sync: false
       - key: ALLOWED_ORIGINS
         value: https://localhost,capacitor://localhost,https://loan-api-bz0y.onrender.com
+      # Public URL of the latest APK for the in-app update prompt.
+      # Leave unset to serve the JSR-Lending.apk in the project root instead (note: *.apk
+      # is gitignored, so on Render you normally want to set this to external storage).
+      - key: APP_APK_URL
+        sync: false
