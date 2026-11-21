@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useLoan } from '../contexts/LoanContext'
+import { getOverdueInfo } from '../lib/overdue'
 
 export default function AdminLoanDashboard() {
   const { getLoanStats, getLoans, getBorrowers } = useLoan()
@@ -37,6 +38,13 @@ export default function AdminLoanDashboard() {
   const outstanding = totalDisbursed - totalRepaid
   const recentLoans = loans.slice(0, 5)
 
+  const overdueLoans = loans
+    .map(loan => ({ loan, info: getOverdueInfo(loan) }))
+    .filter(x => x.info.overdue)
+    .sort((a, b) => b.info.days - a.info.days)
+  const overdueCount = overdueLoans.length
+  const overdueTotal = overdueLoans.reduce((s, x) => s + x.info.balance, 0)
+
   if (loading) return <div className="page-loading">Loading...</div>
 
   return (
@@ -44,6 +52,13 @@ export default function AdminLoanDashboard() {
       <h1>Dashboard</h1>
 
       <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+        <div className="stat-card" style={{ borderTopColor: '#f44336', background: overdueCount > 0 ? '#fff5f5' : undefined }}>
+          <span className="stat-value" style={{ color: overdueCount > 0 ? '#f44336' : undefined }}>{overdueCount}</span>
+          <span className="stat-label">Overdue Loans</span>
+          {overdueCount > 0 && (
+            <span className="stat-label" style={{ color: '#f44336', fontWeight: 700, marginTop: 2 }}>₱{overdueTotal.toLocaleString()} due</span>
+          )}
+        </div>
         <div className="stat-card" style={{ borderTopColor: '#ff9800' }}>
           <span className="stat-value">{pendingLoans}</span>
           <span className="stat-label">Pending Loans</span>
@@ -85,6 +100,34 @@ export default function AdminLoanDashboard() {
         <div className="checkout-section" style={{ padding: 14, marginTop: 12, borderLeft: '3px solid #f44336' }}>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Outstanding Balance</div>
           <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#f44336' }}>₱{outstanding.toLocaleString()}</div>
+        </div>
+      )}
+
+      {overdueLoans.length > 0 && (
+        <div className="checkout-section" style={{ marginTop: 16, borderLeft: '3px solid #f44336', background: '#fffafa' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <h2 style={{ margin: 0, color: '#f44336' }}>Overdue Loans</h2>
+            <Link to="/admin/loans" style={{ fontSize: '0.82rem', color: 'var(--primary)', textDecoration: 'none' }}>View All</Link>
+          </div>
+          <div className="orders-list">
+            {overdueLoans.map(({ loan, info }) => (
+              <Link key={loan.id} to="/admin/loans" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div className="order-card" style={{ borderLeftColor: '#f44336', cursor: 'pointer' }}>
+                  <div className="order-card-header">
+                    <span className="order-id">{loan.borrower_name || 'Unknown'}</span>
+                    <span className="order-status status-cancelled">Overdue · {info.days} {info.days === 1 ? 'day' : 'days'}</span>
+                  </div>
+                  <div className="order-card-items">
+                    {loan.frequency || 'daily'} | Due: {info.lastDue ? info.lastDue.toLocaleDateString() : '—'}
+                  </div>
+                  <div className="order-card-footer">
+                    <span className="order-total" style={{ color: '#f44336' }}>Balance: ₱{info.balance.toLocaleString()}</span>
+                    <span className="order-date">Term: {loan.days || '—'} days</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       )}
 

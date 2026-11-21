@@ -146,14 +146,38 @@ export default function LoanDetail() {
         const daysPassed = schedule.filter(s => { const ds = toLocalStr(s.date); return ds < todayStr || (ds === todayStr && (now >= today6pm || todayPaid)) }).length
         const lastDue = schedule[totalSlots - 1]?.date
         const remaining = Math.max(0, (loan.total_payable || 0) - (loan.paid_amount || 0))
-        let overdueDays = 0
-        if (remaining > 0 && lastDue) {
-          const endOfDue = new Date(lastDue)
-          endOfDue.setHours(23, 59, 59, 999)
-          if (now >= endOfDue) {
-            const diffMs = now.getTime() - endOfDue.getTime()
-            overdueDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-            if (overdueDays < 0) overdueDays = 0
+        let startOfDue = null
+        if (lastDue) { startOfDue = new Date(lastDue); startOfDue.setHours(0, 0, 0, 0) }
+        let overdueEnd = null
+        if (startOfDue) {
+          if (remaining > 0) {
+            const startOfNow = new Date(now); startOfNow.setHours(0, 0, 0, 0)
+            if (startOfNow.getTime() > startOfDue.getTime()) overdueEnd = startOfNow
+          } else {
+            // Fully settled: still show the post-term days up to the last payment recorded after the term
+            payments.forEach(p => {
+              const pd = new Date(p.date); pd.setHours(0, 0, 0, 0)
+              if (pd.getTime() > startOfDue.getTime() && (!overdueEnd || pd.getTime() > overdueEnd.getTime())) overdueEnd = pd
+            })
+          }
+        }
+        const overdueRows = []
+        if (startOfDue && overdueEnd) {
+          const totalPayable = Number(loan.total_payable) || 0
+          const overdueDays = Math.round((overdueEnd.getTime() - startOfDue.getTime()) / (1000 * 60 * 60 * 24))
+          for (let k = 1; k <= overdueDays; k++) {
+            const d = new Date(startOfDue); d.setDate(d.getDate() + k)
+            const dateStr = toLocalStr(d)
+            const matched = payments.filter(p => toLocalStr(new Date(p.date)) === dateStr)
+            const paidAmount = matched.reduce((s, p) => s + (Number(p.amount) || 0), 0)
+            const paidBefore = payments.filter(p => toLocalStr(new Date(p.date)) < dateStr).reduce((s, p) => s + (Number(p.amount) || 0), 0)
+            overdueRows.push({
+              n: totalSlots + k,
+              date: d,
+              paid: matched.length > 0,
+              paidAmount,
+              balanceBefore: Math.max(0, totalPayable - paidBefore),
+            })
           }
         }
         return schedule.length > 0 && (
@@ -170,12 +194,15 @@ export default function LoanDetail() {
                   </span>
                 </div>
               ))}
-              {overdueDays > 0 && (
-                <div className="checkout-item" style={{ fontWeight: 700, color: '#f44336' }}>
-                  <span>Overdue ({overdueDays} {overdueDays === 1 ? 'day' : 'days'})</span>
-                  <span>₱{remaining.toLocaleString()}</span>
+              {overdueRows.map(row => (
+                <div key={`overdue-${row.n}`} className="checkout-item" style={{ fontWeight: 700, color: row.paid ? '#2e7d32' : '#f44336', background: row.paid ? '#f1f8e9' : '#fff5f5' }}>
+                  <span>
+                    {row.n}. {row.date.toLocaleDateString()}
+                    <span style={{ marginLeft: 8, fontSize: '0.7rem', fontWeight: 700, color: '#fff', background: row.paid ? '#4caf50' : '#f44336', borderRadius: 4, padding: '2px 6px', textTransform: 'uppercase', letterSpacing: '0.03em' }}>{row.paid ? 'Overdue · Paid' : 'Overdue'}</span>
+                  </span>
+                  <span>{row.paid ? `₱${(row.paidAmount || 0).toLocaleString()}` : `₱${(row.balanceBefore || 0).toLocaleString()}`}</span>
                 </div>
-              )}
+              ))}
             </div>
           </div>
         )
