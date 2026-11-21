@@ -1,7 +1,10 @@
 node_modules/
 dist/
 .env
-.env.production
+# Committed on purpose: VITE_* values are inlined into the client bundle at build
+# time, so Render's build machine must have this file or the site crashes on load.
+# These values ship publicly in every browser bundle and inside the APK anyway.
+!/.env.production
 backend/supabase-config.json
 backend/.env
 backend/*.local
