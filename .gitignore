@@ -14,4 +14,6 @@ android/app/*.keystore
 *.log
 .DS_Store
 *.apk
+# The update banner downloads this from the server, so it must ship with the repo.
+!JSR-Lending.apk
 *.zip
