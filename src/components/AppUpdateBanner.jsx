@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Capacitor } from '@capacitor/core'
+import { native } from '../lib/native'
 import { apiGet } from '../lib/api'
 
 // Compares '1.0.5' > '1.0.4' numerically, ignoring any leading 'v'.
@@ -19,26 +19,26 @@ export function isNewerVersion(latest, current) {
  * dismissible banner instead: tap Update to open the download, then install.
  *
  * Returns nothing on the web, where the service worker (see src/main.jsx) already
- * applies new builds automatically.
+ * applies new builds automatically. All platform calls go through ../lib/native so
+ * this component can be exercised without a device.
  */
 export default function AppUpdateBanner() {
   const [update, setUpdate] = useState(null)
 
   useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return
+    if (!native.isNativePlatform()) return
     let alive = true
 
     // Checks on open and again every time the app returns to the foreground.
     async function check() {
       try {
-        const [{ App }, latestInfo] = await Promise.all([
-          import('@capacitor/app'),
+        const [installedVersion, latestInfo] = await Promise.all([
+          native.getInstalledVersion(),
           apiGet('/version'),
         ])
+        // No APK hosted yet (e.g. before the file is committed) -> nothing to offer.
         if (!alive || !latestInfo?.apk_url) return
-        const { version } = await App.getInfo()
-        if (!alive) return
-        if (isNewerVersion(latestInfo.latest, version)) {
+        if (isNewerVersion(latestInfo.latest, installedVersion)) {
           setUpdate({ version: latestInfo.latest, apk_url: latestInfo.apk_url })
         } else {
           setUpdate(null)
@@ -50,18 +50,20 @@ export default function AppUpdateBanner() {
 
     check()
 
-    let subscription = null
-    import('@capacitor/app')
-      .then(({ App }) => App.addListener('appStateChange', ({ isActive }) => { if (isActive) check() }))
-      .then((handle) => {
-        subscription = handle
-        if (!alive && handle?.remove) handle.remove()
+    let unsubscribe = null
+    let tornDown = false
+    native
+      .onForeground(check)
+      .then((off) => {
+        unsubscribe = off
+        if (tornDown) off()
       })
       .catch(() => {})
 
     return () => {
       alive = false
-      if (subscription?.remove) subscription.remove()
+      tornDown = true
+      if (unsubscribe) unsubscribe()
     }
   }, [])
 
@@ -69,8 +71,7 @@ export default function AppUpdateBanner() {
 
   async function handleUpdate() {
     try {
-      const { App } = await import('@capacitor/app')
-      await App.openUrl({ url: update.apk_url })
+      await native.openUrl(update.apk_url)
     } catch {}
   }
 
