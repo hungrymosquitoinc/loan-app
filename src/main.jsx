@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
 import { supabase } from './lib/supabase'
+import { setupSessionTimeout } from './lib/sessionTimeout'
 import { Capacitor } from '@capacitor/core'
 
 // Keeps the app in sync with whatever the developer last deployed.
@@ -103,8 +104,16 @@ if (Capacitor.isNativePlatform()) {
   })
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-)
+// Decide the session *before* the first paint: if the Android app was closed for
+// more than CLOSED_LOGOUT_MS the sign-out completes first, so a returning user
+// lands straight on the login screen instead of briefly seeing their dashboard.
+// Resolves immediately on the web and on every normal (not-expired) reopen.
+setupSessionTimeout()
+  .catch(() => {})
+  .finally(() => {
+    ReactDOM.createRoot(document.getElementById('root')).render(
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>
+    )
+  })

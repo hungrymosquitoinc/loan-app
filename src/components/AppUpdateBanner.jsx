@@ -53,7 +53,9 @@ export default function AppUpdateBanner() {
     let unsubscribe = null
     let tornDown = false
     native
-      .onForeground(check)
+      .onAppState((isActive) => {
+        if (isActive) check()
+      })
       .then((off) => {
         unsubscribe = off
         if (tornDown) off()

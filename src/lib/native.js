@@ -27,13 +27,14 @@ export const native = {
   },
 
   /**
-   * Calls `handler` whenever the app returns to the foreground.
-   * Resolves to an unsubscribe function.
+   * Reports foreground/background transitions: `handler(true)` when the app comes
+   * back, `handler(false)` when it leaves the foreground. Resolves to an
+   * unsubscribe function.
    */
-  async onForeground(handler) {
+  async onAppState(handler) {
     const { App } = await import('@capacitor/app')
     const handle = await App.addListener('appStateChange', ({ isActive }) => {
-      if (isActive) handler()
+      handler(Boolean(isActive))
     })
     return () => handle.remove()
   },
